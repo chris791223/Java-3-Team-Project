@@ -17,5 +17,5 @@ Each member writes down answers to 3 questions:
 - Do research on JDring library (using for task reminder)
 - Finish Project detail window form design, and coding 
 3. Need assistance / figure things out
-- Find out how to set remainder by using JDuring library
+- Find out how to set remainder by using JDring library
 
