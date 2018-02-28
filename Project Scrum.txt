@@ -19,3 +19,15 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
 - Find out how to set remainder by using JDring library
 
+2018/02/28 Jie Zhu
+1. Done since last scrum:
+ - Design several main dialogs such as login, main, projects, tasks, members dialogs.
+ - Input trello items.
+2. Plan until next Scrum
+ - Improve dialogs design.
+ - setup the initial projects
+ - Create User login dialog.
+ - Create Main dialog.
+ - Insert some test data into database.
+3. Need assistance / figure things out
+ - Find out how to use JTable.
