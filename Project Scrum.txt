@@ -1,7 +1,6 @@
 DAILY SCRUM - EVERY DAY AT 9AM
 ==============================
----if it can be merge?
----if it can be merge 2?
+
 
 Each member writes down answers to 3 questions:
 
@@ -34,9 +33,3 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
  - Find out how to use JTable.
 
-<<<<<<< HEAD
-
-just test merge!!
-=======
-test merge 2!
->>>>>>> d1f5ed48b2e7fa971f3120866b040dabf2bc79a8
