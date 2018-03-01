@@ -34,6 +34,29 @@ public class Database {
                 USERNAME, PASSWORD);        
     }
     
+    public String getPasswordByEmail(String email) throws SQLException{
+        String sql = "SELECT password FROM users WHERE email = ?";                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("password");
+            }
+        }
+        return "";
+    }
+    public String getPasswordByEmployeeID(String ID) throws SQLException{
+        String sql = "SELECT password FROM users WHERE id =" + ID;                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("password");
+            }
+        }
+        return "";
+    }
+    
     public ArrayList<Team> getAllTeamMembers(long projectId) throws SQLException {
         String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE projectId = ? AND isLeft = 0";
         ArrayList<Team> list = new ArrayList<>();

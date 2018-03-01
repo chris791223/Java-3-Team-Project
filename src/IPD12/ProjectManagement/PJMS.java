@@ -5,11 +5,16 @@
  */
 package IPD12.ProjectManagement;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,11 +22,24 @@ import java.util.logging.Logger;
  */
 public class PJMS extends javax.swing.JFrame {
 
-    
+    private boolean firstInputUserID=true;
+    private boolean firstInputPassword=true;
+    private final Pattern EMAL_PATTERN = Pattern.compile(".+@.+");
+    private Database db;
     /**
      * Creates new form Login
      */
     public PJMS() {
+        try {
+            db=new Database();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Open MySQL Database failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
         initComponents();
     }
 
@@ -147,14 +165,14 @@ public class PJMS extends javax.swing.JFrame {
         jMenu8 = new javax.swing.JMenu();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
+        loginDlg_tfUserID = new javax.swing.JTextField();
         jCheckBox1 = new javax.swing.JCheckBox();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jButton6 = new javax.swing.JButton();
         jButton15 = new javax.swing.JButton();
+        loginDlg_pwtfPassword = new javax.swing.JPasswordField();
+        jSeparator1 = new javax.swing.JSeparator();
 
         jDialog1.setTitle("HR User Dialog");
 
@@ -965,16 +983,13 @@ public class PJMS extends javax.swing.JFrame {
         jLabel1.setText("Password:");
 
         jLabel2.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
-        jLabel2.setText("User:");
+        jLabel2.setText("UserID:");
 
-        jTextField1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
-        jTextField1.setText("*************");
-
-        jTextField2.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
-        jTextField2.setText("example@gmail.com");
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+        loginDlg_tfUserID.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
+        loginDlg_tfUserID.setText("Email or Employee ID");
+        loginDlg_tfUserID.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                loginDlg_tfUserIDMouseClicked(evt);
             }
         });
 
@@ -987,9 +1002,6 @@ public class PJMS extends javax.swing.JFrame {
                 jButton1ActionPerformed(evt);
             }
         });
-
-        jButton2.setFont(new java.awt.Font("Dialog", 0, 8)); // NOI18N
-        jButton2.setText("Edit Password");
 
         jLabel7.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
         jLabel7.setText("Project Management System V1.0");
@@ -1009,6 +1021,13 @@ public class PJMS extends javax.swing.JFrame {
             }
         });
 
+        loginDlg_pwtfPassword.setText("jPasswordField1");
+        loginDlg_pwtfPassword.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                loginDlg_pwtfPasswordMouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1017,50 +1036,49 @@ public class PJMS extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(40, 40, 40)
-                                .addComponent(jTextField2))
+                                .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(26, 26, 26)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jCheckBox1)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jButton6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(22, 22, 22)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jTextField1)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGap(20, 20, 20)
-                                                .addComponent(jButton6))
-                                            .addComponent(jCheckBox1))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jButton2)
-                                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                        .addGap(31, 31, 31))))
+                                    .addComponent(loginDlg_tfUserID)
+                                    .addComponent(loginDlg_pwtfPassword))))
+                        .addGap(31, 31, 31))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
+            .addComponent(jSeparator1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(27, 27, 27)
+                .addContainerGap()
                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(11, 11, 11)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(loginDlg_tfUserID, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jCheckBox1)
-                    .addComponent(jButton2))
+                    .addComponent(loginDlg_pwtfPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE))
+                .addGap(16, 16, 16)
+                .addComponent(jCheckBox1)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -1072,10 +1090,6 @@ public class PJMS extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
-
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem3ActionPerformed
@@ -1086,12 +1100,82 @@ public class PJMS extends javax.swing.JFrame {
         jDialog2.setVisible(true);
     }//GEN-LAST:event_jMenu2MouseClicked
 
+    private boolean isPasswordCorrect(char [] passwordInput ,char [] passwordDBChar){
+        boolean isCorrect = true;        
+        if (passwordInput.length != passwordDBChar.length) {
+            isCorrect = false;
+        } else {
+            isCorrect = Arrays.equals (passwordInput, passwordDBChar);
+        }
+        return isCorrect;
+    }
+    
+    private boolean isInputEmail(String str){
+        Matcher matcher = EMAL_PATTERN.matcher(str);
+        return matcher.find();
+    }
+    
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        String userID = loginDlg_tfUserID.getText();
+        char[] passwordInput = loginDlg_pwtfPassword.getPassword();
+        String passwordDB="";
+        char[] passwordDBChar=null;
+        if(isInputEmail(userID)){
+            try {
+                passwordDB = db.getPasswordByEmail(userID);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                    "Select password from users by Email failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if(passwordDB.isEmpty()){
+                JOptionPane.showMessageDialog(null,
+                    "You are enter a wrong email!\n" ,
+                    "Email wrong!",
+                    JOptionPane.INFORMATION_MESSAGE);
+                loginDlg_tfUserID.selectAll();
+                loginDlg_tfUserID.requestFocusInWindow();
+                return;
+            }
+        }else{
+            try {
+                passwordDB = db.getPasswordByEmployeeID(userID);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                    "Select password from users by ID failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if(passwordDB.isEmpty()){
+                JOptionPane.showMessageDialog(null,
+                    "You are enter a wrong Employee ID!\n" ,
+                    "Employee ID wrong!",
+                    JOptionPane.INFORMATION_MESSAGE);
+                loginDlg_tfUserID.selectAll();
+                loginDlg_tfUserID.requestFocusInWindow();
+                return;
+            }
+        }
+        passwordDBChar = passwordDB.toCharArray();
+        if(!isPasswordCorrect(passwordInput,passwordDBChar)){
+            JOptionPane.showMessageDialog(null,
+                    "You are enter a wrong password!\n" ,
+                    "Password wrong!",
+                    JOptionPane.INFORMATION_MESSAGE);
+            loginDlg_pwtfPassword.selectAll();
+            loginDlg_pwtfPassword.requestFocusInWindow();
+            return;
+        }
         jDialog7.pack();
         jDialog7.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton6ActionPerformed
@@ -1121,6 +1205,20 @@ public class PJMS extends javax.swing.JFrame {
 
         //});
     }//GEN-LAST:event_jButton15ActionPerformed
+
+    private void loginDlg_tfUserIDMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDMouseClicked
+        if(firstInputUserID){
+            firstInputUserID=false;
+            loginDlg_tfUserID.setText("");
+        }
+    }//GEN-LAST:event_loginDlg_tfUserIDMouseClicked
+
+    private void loginDlg_pwtfPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordMouseClicked
+        if(firstInputPassword){
+            firstInputPassword=false;
+            loginDlg_pwtfPassword.setText("");
+        }
+    }//GEN-LAST:event_loginDlg_pwtfPasswordMouseClicked
 
     /**
      * @param args the command line arguments
@@ -1171,7 +1269,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton16;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
@@ -1262,12 +1359,12 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JScrollPane jScrollPane8;
     private javax.swing.JScrollPane jScrollPane9;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
     private javax.swing.JTable jTable3;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField10;
     private javax.swing.JTextField jTextField11;
     private javax.swing.JTextField jTextField12;
@@ -1275,7 +1372,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField14;
     private javax.swing.JTextField jTextField15;
     private javax.swing.JTextField jTextField16;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField5;
@@ -1284,5 +1380,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField8;
     private javax.swing.JTextField jTextField9;
     private javax.swing.JTree jTree1;
+    private javax.swing.JPasswordField loginDlg_pwtfPassword;
+    private javax.swing.JTextField loginDlg_tfUserID;
     // End of variables declaration//GEN-END:variables
 }
