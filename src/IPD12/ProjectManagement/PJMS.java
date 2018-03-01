@@ -5,6 +5,7 @@
  */
 package IPD12.ProjectManagement;
 
+import java.awt.event.KeyEvent;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +25,7 @@ public class PJMS extends javax.swing.JFrame {
 
     private boolean firstInputUserID=true;
     private boolean firstInputPassword=true;
+    
     private final Pattern EMAL_PATTERN = Pattern.compile(".+@.+");
     private Database db;
     /**
@@ -1027,6 +1029,11 @@ public class PJMS extends javax.swing.JFrame {
                 loginDlg_pwtfPasswordMouseClicked(evt);
             }
         });
+        loginDlg_pwtfPassword.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                loginDlg_pwtfPasswordKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1088,6 +1095,7 @@ public class PJMS extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -1115,7 +1123,7 @@ public class PJMS extends javax.swing.JFrame {
         return matcher.find();
     }
     
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void matchUserAccount(){
         String userID = loginDlg_tfUserID.getText();
         char[] passwordInput = loginDlg_pwtfPassword.getPassword();
         String passwordDB="";
@@ -1171,13 +1179,18 @@ public class PJMS extends javax.swing.JFrame {
             loginDlg_pwtfPassword.requestFocusInWindow();
             return;
         }
+        this.setVisible(false);
         jDialog7.pack();
         jDialog7.setVisible(true);
+    }
+    
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        matchUserAccount();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
+        System.exit(0);
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
@@ -1198,12 +1211,7 @@ public class PJMS extends javax.swing.JFrame {
         catch (ParseException ex) {
             Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-
-        
-        //    };
-
-        //});
+ 
     }//GEN-LAST:event_jButton15ActionPerformed
 
     private void loginDlg_tfUserIDMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDMouseClicked
@@ -1219,6 +1227,13 @@ public class PJMS extends javax.swing.JFrame {
             loginDlg_pwtfPassword.setText("");
         }
     }//GEN-LAST:event_loginDlg_pwtfPasswordMouseClicked
+
+    private void loginDlg_pwtfPasswordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordKeyReleased
+        
+        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
+           matchUserAccount();
+        }
+    }//GEN-LAST:event_loginDlg_pwtfPasswordKeyReleased
 
     /**
      * @param args the command line arguments
