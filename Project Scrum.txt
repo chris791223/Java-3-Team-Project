@@ -35,4 +35,14 @@ Each member writes down answers to 3 questions:
  - Find out how to use JTable.
 
 
+2018/02/28 Jing Wang
+1. Done since last scrum:
+- Research on JDring library
+- Research on JTable
+- Project detail window form design
+- Do not finish all of code for Project detail window form
+2. Plan until next Scrum
+- Finish coding for Project detail window form 
+3. Need assistance / figure things out
+- Nothing special
 
