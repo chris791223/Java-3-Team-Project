@@ -1353,7 +1353,7 @@
                       <Data value="null"/>
                     </Column>
                     <Column editable="true" title="Description" type="java.lang.Object">
-                      <Data value="aaddd"/>
+                      <Data value="kldlkjglkajlkfsfsfsdfasfjjklgljkdfafgsgdsg"/>
                       <Data value="null"/>
                       <Data value="null"/>
                       <Data value="null"/>
@@ -1579,11 +1579,6 @@
         </Menu>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JLabel" name="jLabel28">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="jLabel28"/>
-      </Properties>
-    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
