@@ -58,6 +58,27 @@ public class Database {
         return list;
     }
     
+    public ArrayList<Team> getAllTeamAvailabeResouces() throws SQLException {
+        
+        String sql = "SELECT id, name, ability FROM users WHERE isAvailable = 1";
+        ArrayList<Team> list = new ArrayList<>();
+     
+        try (Statement stmt = conn.createStatement()) {
+            ResultSet result = stmt.executeQuery(sql);
+            
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String ability = result.getString("ability");
+                
+                Team availableResource = new Team(id, name, ability);
+                list.add(availableResource);
+            }
+        } 
+        
+        return list;
+    }
+    
     /*
     public Car getCarById(long id) throws SQLException{
         String sql = "SELECT * FROM cars WHERE id = ?";
