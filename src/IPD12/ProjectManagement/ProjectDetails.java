@@ -9,7 +9,9 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -19,16 +21,19 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     Database db;
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    DefaultListModel<Team> modelResourceList = new DefaultListModel<>();
+    DefaultListModel<Team> modelMemberList = new DefaultListModel<>();
 
     /**
      * Creates new form ProjectList
      */
-    public ProjectDetails() {
+    public ProjectDetails(Project project) {
         try {
             // connect to db
             db = new Database();
+
             initComponents();
-            //reloadCars();
+            loadProjectInfo(project);
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -41,90 +46,193 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     }
 
-    public ProjectDetails(Project project) {
-        try {
-            // connect to db
-            db = new Database();
+    public void loadProjectInfo(Project project) {
+        // load project details
+        loadProjectDetails(project);
+        // load task list
+        loadTaskList(project);
+        // load team member
+        loadTeamMember(project);
+    }
 
-            initComponents();
+    public void loadProjectDetails(Project project) {
 
-            //reloadCars();
-            // display project information on the project details window
-            if (project != null) {
-                pjd_lblProjectId.setText(project.getId() + "");
-                pjd_tfName.setText(project.getName());
-                pjd_taDescription.setText(project.getDescription());
+        // initialization
+        DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+        modelPM.removeAllElements();
+
+        // load project information 
+        if (project != null) {
+            pjd_lblProjectId.setText(project.getId() + "");
+            pjd_tfName.setText(project.getName());
+            pjd_taDescription.setText(project.getDescription());
+            if (project.getStartDatePlanned() != null) {
                 pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
-                pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
-                pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
-                pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
-                pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
-
-                try {
-                    // initial value list for project manager combo box
-                    // get all team members
-                    ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
-
-                    DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
-                    modelPM.removeAllElements();
-                    for (Team tm : teamList) {
-                        modelPM.addElement(tm.getIdName());
-                        if (tm.getId() == project.getProjectManager()) {
-                            modelPM.setSelectedItem(tm.getIdName());
-                        }
-                    }
-
-                }
-                catch (SQLException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Error fetching data: " + ex.getMessage(),
-                            "Database error",
-                            JOptionPane.ERROR_MESSAGE);
-                    this.dispose();
-                }
-            } else {
-                pjd_lblProjectId.setText("");
-                pjd_tfName.setText("");
-                pjd_taDescription.setText("");
+            }
+            else {
                 pjd_tfStartDatePlanned.setText("");
+            }
+            if (project.getEndDatePlanned() != null) {
+                pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
+            }
+            else {
                 pjd_tfEndDatePlanned.setText("");
+            }
+            if (project.getStartDateActual() != null) {
+                pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
+            }
+            else {
                 pjd_tfStartDateActual.setText("");
+            }
+            if (project.getEndDateActual() != null) {
+                pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
+            }
+            else {
                 pjd_tfEndDateActual.setText("");
-                pjd_chkbIsCompleted.setSelected(false);
+            }
 
-                try {
-                    // initial value list for project manager combo box
-                    // get all availabe resourses
-                    ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
+            pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
 
-                    DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
-                    modelPM.removeAllElements();
-                    for (Team rsc : resourceList) {
-                        modelPM.addElement(rsc.getIdName());
+            try {
+                // initial value list for project manager combo box
+                // get all team members
+                ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
+
+                for (Team tm : teamList) {
+                    modelPM.addElement(tm.getIdName());
+                    if (tm.getId() == project.getProjectManager()) {
+                        modelPM.setSelectedItem(tm.getIdName());
                     }
-
-                }
-                catch (SQLException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Error fetching data: " + ex.getMessage(),
-                            "Database error",
-                            JOptionPane.ERROR_MESSAGE);
-                    this.dispose();
                 }
 
             }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching data: " + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                this.dispose();
+            }
         }
-        catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "Error connecting to database: " + e.getMessage(),
-                    "Database error",
-                    JOptionPane.ERROR_MESSAGE);
-            dispose(); // can't continue if database connection failed
+        else {
+            pjd_lblProjectId.setText("");
+            pjd_tfName.setText("");
+            pjd_taDescription.setText("");
+            pjd_tfStartDatePlanned.setText("");
+            pjd_tfEndDatePlanned.setText("");
+            pjd_tfStartDateActual.setText("");
+            pjd_tfEndDateActual.setText("");
+            pjd_chkbIsCompleted.setSelected(false);
+
+            try {
+                // initial value list for project manager combo box
+                // get all availabe resourses
+                ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
+
+                for (Team rsc : resourceList) {
+                    modelPM.addElement(rsc.getIdName());
+                }
+
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching data: " + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                this.dispose();
+            }
+
+        }
+    }
+
+    public void loadTaskList(Project project) {
+
+        DefaultTableModel tbModel = (DefaultTableModel) pjd_tbTaskList.getModel();
+        // FIXED: initialization
+        tbModel.getDataVector().removeAllElements();
+
+        if (project != null) {
+
+            try {
+                // get task list
+                ArrayList<Task> taskList = db.getAllTasksByProjectId(project.getId());
+
+                for (Task task : taskList) {
+
+                    String id = task.getId() + "";
+                    String name = task.getName();
+                    String description = task.getDescription();
+                    String startDatePlanned = "";
+                    String endDatePlanned = "";;
+                    String startDateActual = "";;
+                    String endDateActual = "";;
+                    String isCompleted;
+                    String inCharegePerson = "";
+
+                    if (task.getStartDatePlanned() != null) {
+                        startDatePlanned = sdf.format(task.getStartDatePlanned());
+                    }
+                    if (task.getEndDatePlanned() != null) {
+                        endDatePlanned = sdf.format(task.getEndDatePlanned());
+                    }
+                    if (task.getStartDateActual() != null) {
+                        startDateActual = sdf.format(task.getStartDateActual());
+                    }
+                    if (task.getEndDateActual() != null) {
+                        endDateActual = sdf.format(task.getEndDateActual());
+                    }
+
+                    isCompleted = task.getIsCompleted() ? "YES" : "NO";
+
+                    long inChargePersonId = task.getPersonInCharge();
+                    if (inChargePersonId != 0) {
+                        Team teamMember = db.getTeamMemberById(inChargePersonId);
+                        if (teamMember != null) {
+                            inCharegePerson = teamMember.getIdName();
+                        }
+                    }
+
+                    tbModel.addRow(new Object[]{id, name, description, startDatePlanned, endDatePlanned,
+                        startDateActual, endDateActual, inCharegePerson, isCompleted});
+                }
+
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching data: " + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                this.dispose();
+            }
         }
 
+    }
+
+    public void loadTeamMember(Project project) {
+        try {
+            ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
+            ArrayList<Team> allTeamMemberList = db.getAllTeamMembers(project.getId());
+            
+            for (Team resource : allAvailableResourceList) {
+                modelResourceList.addElement(resource);
+            }
+            
+            for (Team member : allTeamMemberList) {
+                modelMemberList.addElement(member);
+            }
+        }
+        catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching data: " + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                this.dispose();
+            }
+        
     }
 
     /**
@@ -178,6 +286,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         pjd_btTeamSave = new javax.swing.JButton();
         pjd_btTeamCancel = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
@@ -407,21 +516,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        pjd_lstAllResourse.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", "1001  Brain White  PM, Java, PHP", "1002  Alex Smith  Java, PHP, Javascript", " ", " " };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
+        pjd_lstAllResourse.setModel(modelResourceList);
         jScrollPane2.setViewportView(pjd_lstAllResourse);
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel2.setText("All availabe resource:");
 
-        pjd_lstCurTeamMember.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "1003  Janet Sin  PM, Java, PHP", "1008  Robert Cheese  Java, PHP, C++", "1003  Janet Sin  PM, Java, PHP", "1008  Robert Cheese  Java, PHP, C++", "1003  Janet Sin  PM, Java, PHP", "1008  Robert Cheese  Java, PHP, C++" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
+        pjd_lstCurTeamMember.setModel(modelMemberList);
         jScrollPane3.setViewportView(pjd_lstCurTeamMember);
 
         jButton1.setText(">>");
@@ -497,6 +598,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        jButton3.setText("jButton3");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -511,14 +619,18 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(436, 436, 436)
                 .addComponent(jLabel1)
+                .addGap(78, 78, 78)
+                .addComponent(jButton3)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel1)
+                    .addComponent(jButton3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(29, 29, 29)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -539,10 +651,28 @@ public class ProjectDetails extends javax.swing.JFrame {
         //this.setVisible(false);
     }//GEN-LAST:event_pjd_btDetailCancelActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date startDateP, endDateP, startDateA, endDateA;
+        try {
+            startDateP = sdf.parse("2018-03-10");
+            endDateP = sdf.parse("2018-03-30");
+            startDateA = sdf.parse("2018-03-12");
+            endDateA = sdf.parse("2018-03-28");
+            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, null, 2, true);
+            loadTaskList(project);
+        }
+        catch (Exception ex) {
+
+        }
+
+    }//GEN-LAST:event_jButton3ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -574,8 +704,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> pjd_cbProjectManager;
     private javax.swing.JCheckBox pjd_chkbIsCompleted;
     private javax.swing.JLabel pjd_lblProjectId;
-    private javax.swing.JList<String> pjd_lstAllResourse;
-    private javax.swing.JList<String> pjd_lstCurTeamMember;
+    private javax.swing.JList<Team> pjd_lstAllResourse;
+    private javax.swing.JList<Team> pjd_lstCurTeamMember;
     private javax.swing.JTextArea pjd_taDescription;
     private javax.swing.JTable pjd_tbTaskList;
     private javax.swing.JTextField pjd_tfEndDateActual;

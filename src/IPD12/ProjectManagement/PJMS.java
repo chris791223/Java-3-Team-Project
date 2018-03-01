@@ -1191,9 +1191,9 @@ public class PJMS extends javax.swing.JFrame {
             endDateP = sdf.parse("2018-03-30");
             startDateA = sdf.parse("2018-03-12");
             endDateA = sdf.parse("2018-03-28");
-            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, endDateA, 2, true); 
-            Project projectNull = null;
-            new ProjectDetails(projectNull).setVisible(true);
+            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, null, 2, true); 
+            //Project projectNull = null;
+            new ProjectDetails(project).setVisible(true);
         }
         catch (ParseException ex) {
             Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);

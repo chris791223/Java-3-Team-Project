@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.Action;
 
 /**
@@ -98,6 +99,51 @@ public class Database {
                 
                 Team availableResource = new Team(id, name, ability);
                 list.add(availableResource);
+            }
+        } 
+        
+        return list;
+    }
+    
+    public Team getTeamMemberById(long id) throws SQLException{
+        String sql = "SELECT * FROM users WHERE id = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return new Team(result.getLong("id"), result.getString("name"), result.getString("ability"));
+            } else {
+                return null;
+            }
+        }
+    }
+   
+    
+    public ArrayList<Task> getAllTasksByProjectId(long projectId) throws SQLException {
+        
+        String sql = "SELECT * FROM tasks WHERE projectId = ?";
+        ArrayList<Task> list = new ArrayList<>();
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+            
+            ResultSet result = stmt.executeQuery();
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date startDatePlanned = result.getDate("startDatePlanned");
+                Date endDatePlanned = result.getDate("endDatePlanned");
+                Date startDateActual = result.getDate("startDateActual");
+                Date endDateActual = result.getDate("endDateActual");
+                long inChargePersonId = result.getLong("inChargePerson");
+                boolean isCompleted = result.getBoolean("isCompleted");
+             
+                Task task = new Task(id, name, description, startDatePlanned, endDatePlanned, 
+                        startDateActual, endDateActual, inChargePersonId, isCompleted);
+                list.add(task);
             }
         } 
         

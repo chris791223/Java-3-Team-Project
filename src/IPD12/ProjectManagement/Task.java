@@ -100,7 +100,7 @@ public class Task {
         this.personInCharge = personInCharge;
     }
 
-    public boolean isIsCompleted() {
+    public boolean getIsCompleted() {
         return isCompleted;
     }
 
