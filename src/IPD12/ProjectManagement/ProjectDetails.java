@@ -6,11 +6,8 @@
 package IPD12.ProjectManagement;
 
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
@@ -48,11 +45,10 @@ public class ProjectDetails extends javax.swing.JFrame {
         try {
             // connect to db
             db = new Database();
-            
-            initComponents();
-            
-            //reloadCars();
 
+            initComponents();
+
+            //reloadCars();
             // display project information on the project details window
             if (project != null) {
                 pjd_lblProjectId.setText(project.getId() + "");
@@ -63,29 +59,61 @@ public class ProjectDetails extends javax.swing.JFrame {
                 pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
                 pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
                 pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
-               
-            try {
-                // initial value list for project manager combo box
-                ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
-                
-                DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
-                modelPM.removeAllElements();
-                for (Team tm : teamList) {
-                    modelPM.addElement(tm.getIdName());
-                }
-                
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Error fetching data: " + ex.getMessage(),
-                        "Database error",
-                        JOptionPane.ERROR_MESSAGE);
-                this.dispose();
-            }
-         
 
-                // pjd_cbProjectManager.setSelectedItem(project.getProjectManager());
+                try {
+                    // initial value list for project manager combo box
+                    // get all team members
+                    ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
+
+                    DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+                    modelPM.removeAllElements();
+                    for (Team tm : teamList) {
+                        modelPM.addElement(tm.getIdName());
+                        if (tm.getId() == project.getProjectManager()) {
+                            modelPM.setSelectedItem(tm.getIdName());
+                        }
+                    }
+
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Error fetching data: " + ex.getMessage(),
+                            "Database error",
+                            JOptionPane.ERROR_MESSAGE);
+                    this.dispose();
+                }
+            } else {
+                pjd_lblProjectId.setText("");
+                pjd_tfName.setText("");
+                pjd_taDescription.setText("");
+                pjd_tfStartDatePlanned.setText("");
+                pjd_tfEndDatePlanned.setText("");
+                pjd_tfStartDateActual.setText("");
+                pjd_tfEndDateActual.setText("");
+                pjd_chkbIsCompleted.setSelected(false);
+
+                try {
+                    // initial value list for project manager combo box
+                    // get all availabe resourses
+                    ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
+
+                    DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+                    modelPM.removeAllElements();
+                    for (Team rsc : resourceList) {
+                        modelPM.addElement(rsc.getIdName());
+                    }
+
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Error fetching data: " + ex.getMessage(),
+                            "Database error",
+                            JOptionPane.ERROR_MESSAGE);
+                    this.dispose();
+                }
+
             }
         }
         catch (SQLException e) {

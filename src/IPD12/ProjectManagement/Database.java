@@ -34,30 +34,6 @@ public class Database {
                 USERNAME, PASSWORD);  
     }
     
-
-    public String getPasswordByEmail(String email) throws SQLException{
-        String sql = "SELECT password FROM users WHERE email = ?";                
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            
-            ResultSet result = stmt.executeQuery();
-            if (result.next()) {
-                return result.getString("password");
-            }
-        }
-        return "";
-    }
-    public String getPasswordByEmployeeID(String ID) throws SQLException{
-        String sql = "SELECT password FROM users WHERE id =" + ID;                
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            ResultSet result = stmt.executeQuery();
-            if (result.next()) {
-                return result.getString("password");
-            }
-        }
-        return "";
-    }
-    
     public ArrayList<Team> getAllTeamMembers(long projectId) throws SQLException {
         
         String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE t.projectId = ? AND t.isLeft = 0";
@@ -74,6 +50,27 @@ public class Database {
                 
                 Team teamMember = new Team(id, name, ability);
                 list.add(teamMember);
+            }
+        } 
+        
+        return list;
+    }
+    
+    public ArrayList<Team> getAllTeamAvailabeResouces() throws SQLException {
+        
+        String sql = "SELECT id, name, ability FROM users WHERE isAvailable = 1";
+        ArrayList<Team> list = new ArrayList<>();
+     
+        try (Statement stmt = conn.createStatement()) {
+            ResultSet result = stmt.executeQuery(sql);
+            
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String ability = result.getString("ability");
+                
+                Team availableResource = new Team(id, name, ability);
+                list.add(availableResource);
             }
         } 
         
@@ -149,6 +146,34 @@ public class Database {
         }
     }
  */   
+    
+   // For Jerry
+   ////////////////////////////////////////////////////////////////////
+   
+    public String getPasswordByEmail(String email) throws SQLException{
+        String sql = "SELECT password FROM users WHERE email = ?";                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("password");
+            }
+        }
+        return "";
+    }
+    public String getPasswordByEmployeeID(String ID) throws SQLException{
+        String sql = "SELECT password FROM users WHERE id =" + ID;                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("password");
+            }
+        }
+        return "";
+    } 
+    
+   ////////////////////////////////////////////////////////////////////
     /**
      * @param conn the conn to set
      */
