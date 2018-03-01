@@ -6,7 +6,12 @@
 package IPD12.ProjectManagement;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -17,6 +22,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     Database db;
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
     /**
      * Creates new form ProjectList
      */
@@ -37,25 +43,60 @@ public class ProjectDetails extends javax.swing.JFrame {
         }
 
     }
-    
-    
+
     public ProjectDetails(Project project) {
-        initComponents();
-        
-        // display project information on the project details window
-        if (project != null) {
-            pjd_lblProjectId.setText(project.getId() + "");
-            pjd_tfName.setText(project.getName());
-            pjd_taDescription.setText(project.getDescription());
-            pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
-            pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
-            pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
-            pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
-            pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
+        try {
+            // connect to db
+            db = new Database();
             
-            // 
-            pjd_cbProjectManager.setSelectedItem(project.getProjectManager());
+            initComponents();
+            
+            //reloadCars();
+
+            // display project information on the project details window
+            if (project != null) {
+                pjd_lblProjectId.setText(project.getId() + "");
+                pjd_tfName.setText(project.getName());
+                pjd_taDescription.setText(project.getDescription());
+                pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
+                pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
+                pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
+                pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
+                pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
+               
+            try {
+                // initial value list for project manager combo box
+                ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
+                
+                DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+                modelPM.removeAllElements();
+                for (Team tm : teamList) {
+                    modelPM.addElement(tm.getIdName());
+                }
+                
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching data: " + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                this.dispose();
+            }
+         
+
+                // pjd_cbProjectManager.setSelectedItem(project.getProjectManager());
+            }
         }
+        catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error connecting to database: " + e.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+            dispose(); // can't continue if database connection failed
+        }
+
     }
 
     /**
@@ -159,8 +200,6 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_tfEndDateActual.setText("10-20-2019");
 
         jLabel12.setText("Project Manager:");
-
-        pjd_cbProjectManager.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Brain White", "Jerry Zhu", "Jing Wang" }));
 
         jLabel14.setText("Is Completed:");
 
@@ -472,7 +511,6 @@ public class ProjectDetails extends javax.swing.JFrame {
         //this.setVisible(false);
     }//GEN-LAST:event_pjd_btDetailCancelActionPerformed
 
-  
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

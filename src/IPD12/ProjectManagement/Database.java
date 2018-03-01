@@ -30,10 +30,11 @@ public class Database {
     
     public Database() throws SQLException {
         conn = DriverManager.getConnection(
-                "jdbc:mysql://" + HOSTNAME + "/" + DBNAME,
-                USERNAME, PASSWORD);        
+                "jdbc:mysql://" + HOSTNAME + "/" + DBNAME + "?useSSL=false",
+                USERNAME, PASSWORD);  
     }
     
+<<<<<<< HEAD
     public String getPasswordByEmail(String email) throws SQLException{
         String sql = "SELECT password FROM users WHERE email = ?";                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -56,9 +57,13 @@ public class Database {
         }
         return "";
     }
+=======
+
+>>>>>>> origin/master
     
     public ArrayList<Team> getAllTeamMembers(long projectId) throws SQLException {
-        String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE projectId = ? AND isLeft = 0";
+        
+        String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE t.projectId = ? AND t.isLeft = 0";
         ArrayList<Team> list = new ArrayList<>();
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -73,7 +78,8 @@ public class Database {
                 Team teamMember = new Team(id, name, ability);
                 list.add(teamMember);
             }
-        }
+        } 
+        
         return list;
     }
     
