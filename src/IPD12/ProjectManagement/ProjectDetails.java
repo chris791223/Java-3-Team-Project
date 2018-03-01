@@ -45,44 +45,60 @@ public class ProjectDetails extends javax.swing.JFrame {
     }
 
     public ProjectDetails(Project project) {
-        initComponents();
+        try {
+            // connect to db
+            db = new Database();
+            
+            initComponents();
+            
+            //reloadCars();
 
-        // display project information on the project details window
-        if (project != null) {
-            pjd_lblProjectId.setText(project.getId() + "");
-            pjd_tfName.setText(project.getName());
-            pjd_taDescription.setText(project.getDescription());
-            pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
-            pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
-            pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
-            pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
-            pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
-/*
+            // display project information on the project details window
+            if (project != null) {
+                pjd_lblProjectId.setText(project.getId() + "");
+                pjd_tfName.setText(project.getName());
+                pjd_taDescription.setText(project.getDescription());
+                pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
+                pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
+                pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
+                pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
+                pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
+               
             try {
                 // initial value list for project manager combo box
-                //ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
-                String s = db.xxx();
+                ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
+                
                 DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
                 modelPM.removeAllElements();
-                //for (Team tm : teamList) {
-                //    modelPM.addElement(tm.getIdName());
-                //}
+                for (Team tm : teamList) {
+                    modelPM.addElement(tm.getIdName());
+                }
                 
             }
-            catch (Exception ex) {
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
                         "Database error",
                         JOptionPane.ERROR_MESSAGE);
                 this.dispose();
-            }*/
-            db.xxx();
+            }
+         
 
-           // pjd_cbProjectManager.setSelectedItem(project.getProjectManager());
+                // pjd_cbProjectManager.setSelectedItem(project.getProjectManager());
+            }
         }
+        catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error connecting to database: " + e.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+            dispose(); // can't continue if database connection failed
+        }
+
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
