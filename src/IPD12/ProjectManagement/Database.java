@@ -34,7 +34,7 @@ public class Database {
                 USERNAME, PASSWORD);  
     }
     
-<<<<<<< HEAD
+
     public String getPasswordByEmail(String email) throws SQLException{
         String sql = "SELECT password FROM users WHERE email = ?";                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,9 +57,9 @@ public class Database {
         }
         return "";
     }
-=======
 
->>>>>>> origin/master
+
+
     
     public ArrayList<Team> getAllTeamMembers(long projectId) throws SQLException {
         
@@ -173,6 +173,12 @@ public class Database {
         }
     }
  */   
+    
+   // For Jerry
+   ////////////////////////////////////////////////////////////////////
+    
+    
+   ////////////////////////////////////////////////////////////////////
     /**
      * @param conn the conn to set
      */
