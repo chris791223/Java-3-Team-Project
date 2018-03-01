@@ -34,14 +34,19 @@ public class Database {
                 USERNAME, PASSWORD);        
     }
     
-    public ArrayList<Team> getAllTeamMembers(long projectId) throws SQLException {
-        String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE projectId = ? AND isLeft = 0";
+    public String xxx() {
+        return  "SQL";
+    }
+    
+    public String getAllTeamMembers(long projectId) throws SQLException {
+        /*
+        String sql = "SELECT u.id, u.name, u.ability FROM teams AS t join users AS u on t.userId = u.id WHERE t.projectId = ? AND t.isLeft = 0";
         ArrayList<Team> list = new ArrayList<>();
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, projectId);
-            
-            ResultSet result = stmt.executeQuery();
+            System.out.println(stmt);
+            /*ResultSet result = stmt.executeQuery();
             while (result.next()) {
                 long id = result.getLong("id");
                 String name = result.getString("name");
@@ -50,8 +55,24 @@ public class Database {
                 Team teamMember = new Team(id, name, ability);
                 list.add(teamMember);
             }
-        }
-        return list;
+        } 
+        */
+        
+        String sql = "SELECT * from users";
+        //ArrayList<Team> list = new ArrayList<>();
+        
+       // try (Statement stmt = conn.createStatement()) {
+          //  ResultSet result = stmt.executeQuery(sql);
+           // while (result.next()) {
+         //       long id = 1000 ;//result.getLong("id");
+        //        String name = "wj";//result.getString("name");
+        //        String ability = "pm" ; //result.getString("ability");
+                
+       //         Team teamMember = new Team(id, name, ability);
+      //          list.add(teamMember);
+          //  }
+      //  }
+        return sql;
     }
     
     /*
