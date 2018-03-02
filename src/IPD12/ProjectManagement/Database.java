@@ -233,6 +233,23 @@ public class Database {
         }
     }
     
+    public boolean checkIfMemberInTeam(long projectId, long userId) throws SQLException {
+        String sql = "SELECT * FROM teams WHERE projectId = ? and userId = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+            stmt.setLong(2, userId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    
     public void addTeamMember(Team teamMember) throws SQLException {
         String sql = "INSERT INTO teams (projectId, userId, isLeft) VALUES(?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -244,6 +261,28 @@ public class Database {
         } 
     }
     
+    public void updateTeamMemberStatus(Team teamMember) throws SQLException {
+        String sql = "UPDATE teams set isLeft =? WHERE projectId = ? and userId = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, teamMember.getIsLeft());
+            stmt.setLong(2, teamMember.getProjectId());
+            stmt.setLong(3, teamMember.getId());
+
+            stmt.executeUpdate();
+        } 
+    }
+    
+    public void updateUserStatus(User user) throws SQLException {
+        String sql = "UPDATE users set isAvailable = ? WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, user.getIsAvailable());
+            stmt.setLong(2, user.getId());
+
+            stmt.executeUpdate();
+        } 
+    }
+    
+    /*
     public void deleteTeambyProjectId(long id) throws SQLException {
         String sql = "DELETE FROM teams WHERE projectId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -252,7 +291,7 @@ public class Database {
             stmt.executeUpdate();
         }
     }
-
+    */
     /*
     public Car getCarById(long id) throws SQLException{
         String sql = "SELECT * FROM cars WHERE id = ?";
