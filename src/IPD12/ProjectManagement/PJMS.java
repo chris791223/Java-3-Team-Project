@@ -1394,8 +1394,8 @@ public class PJMS extends javax.swing.JFrame {
                     JOptionPane.INFORMATION_MESSAGE);
                 //loginDlg_tfUserID.selectAll();
                 //loginDlg_tfUserID.requestFocusInWindow();
-                //loginDlg_tfUserID.setText("");
-                loginInputFlag=1;
+                loginDlg_tfUserID.setText("");
+                //loginInputFlag=1;
                 return false;
             }
         }else{
@@ -1417,8 +1417,8 @@ public class PJMS extends javax.swing.JFrame {
                             JOptionPane.INFORMATION_MESSAGE);
                     //loginDlg_tfUserID.selectAll();
                     //loginDlg_tfUserID.requestFocusInWindow();
-                    //loginDlg_tfUserID.setText("");
-                    loginInputFlag=1;
+                    loginDlg_tfUserID.setText("");
+                    //loginInputFlag=1;
                     return false;
                 }
             } else {
@@ -1437,8 +1437,8 @@ public class PJMS extends javax.swing.JFrame {
                     JOptionPane.INFORMATION_MESSAGE);
             //loginDlg_pwtfPassword.selectAll();
             //loginDlg_pwtfPassword.requestFocusInWindow();
-            //loginDlg_pwtfPassword.setText("");
-            loginInputFlag=2;
+            loginDlg_pwtfPassword.setText("");
+            //loginInputFlag=2;
             return false;
         }         
         return true;
@@ -1594,12 +1594,14 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
-        //new ProjectDetails(null).setVisible(true);
+        new ProjectDetails(null).setVisible(true);
+        /*
         JFrame jf = new ProjectDetails(null);
         JDialog jd = new JDialog(jf);
         jd.setModal(true);
         jd.pack();
         jd.setVisible(true);
+        */
     }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
 
     private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
@@ -1637,12 +1639,14 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_mainDlg_tbProjectsMouseReleased
 
     private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
+        /*
         System.out.println("Focus Gained");
         if(loginInputFlag==1){
             loginDlg_tfUserID.requestFocusInWindow();
         }else if(loginInputFlag==2){
             loginDlg_tfUserID.requestFocusInWindow();
         }
+        */
     }//GEN-LAST:event_formFocusGained
 
     /**

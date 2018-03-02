@@ -481,16 +481,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addGap(30, 30, 30))
         );
 
-        jLabel33.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         jLabel33.setText("Project ID:");
 
-        tsk_lblProjectId.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         tsk_lblProjectId.setText(":::");
 
-        jLabel34.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         jLabel34.setText("Project Name:");
 
-        tsk_lblProjectName.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         tsk_lblProjectName.setText("ABC Inc. Core-System Re-Build Project");
 
         javax.swing.GroupLayout dlgTaskEditorLayout = new javax.swing.GroupLayout(dlgTaskEditor.getContentPane());
@@ -542,7 +538,6 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
-        setAlwaysOnTop(true);
         setName("frmProjectDetails"); // NOI18N
         setResizable(false);
 
