@@ -5,6 +5,7 @@
  */
 package IPD12.ProjectManagement;
 
+import java.awt.GraphicsConfiguration;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,6 +35,7 @@ public class ProjectDetails extends javax.swing.JFrame {
      * Creates new form ProjectList
      */
     public ProjectDetails(Project project) {
+        
         try {
             // connect to db
             db = new Database();
@@ -49,8 +51,9 @@ public class ProjectDetails extends javax.swing.JFrame {
                     JOptionPane.ERROR_MESSAGE);
             dispose(); // can't continue if database connection failed
         }
-
-    }
+        
+    }    
+    
 
     public void loadProjectInfo(Project project) {
         // load project details
@@ -305,6 +308,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
+        setAlwaysOnTop(true);
         setName("frmProjectDetails"); // NOI18N
         setResizable(false);
 
@@ -507,7 +511,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
@@ -956,4 +960,6 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JTextField pjd_tfStartDateActual;
     private javax.swing.JTextField pjd_tfStartDatePlanned;
     // End of variables declaration//GEN-END:variables
+
+    
 }

@@ -7,6 +7,7 @@ package IPD12.ProjectManagement;
 ;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.Date;
 import java.sql.SQLException;
@@ -18,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -36,6 +39,7 @@ public class PJMS extends javax.swing.JFrame {
     private final int REMINDER_COLOR_BLUE = 2;
     private final int REMINDER_COLOR_YELLOW = 3;
     private int[] colorFlag;
+    private int loginInputFlag=1;
     private Database db;
     
     class EvenOddRenderer implements TableCellRenderer {
@@ -48,15 +52,19 @@ public class PJMS extends javax.swing.JFrame {
         Component renderer
                 = DEFAULT_RENDERER.getTableCellRendererComponent(table, value,
                         isSelected, hasFocus, row, column);
-        Color background=null;
+        Color background=null;  
+        Color foreground=null;
         if (column == 5) {
             if(colorFlag[row]==REMINDER_COLOR_RED){
                 background = Color.RED;
             }else if(colorFlag[row]==REMINDER_COLOR_YELLOW){
                 background = Color.YELLOW;
             }
-        }         
+        } 
+        foreground = Color.BLUE;
+               
         renderer.setBackground(background);
+        renderer.setForeground(foreground);
         return renderer;
     }
 
@@ -77,16 +85,17 @@ public class PJMS extends javax.swing.JFrame {
         colorFlag = new int[pList.size()];            
             int rowIndex=0;
             String alertString = "";
-            double diff;
+            double diff=0.0;
             for(Task l : pList){
                 Date now = new Date();  
                 Date sdp = l.getStartDatePlanned();
                 Date sda = l.getStartDateActual();
                 Date edp = l.getEndDatePlanned();
                 Date eda = l.getEndDateActual();                
-                if(sda==null){
+                if(sda==null&&sdp!=null){
                     diff = countTwoDate(sdp,now);
                     if(diff>=0&&diff<=REMINDER_DAY){
+                        diff = Math.abs(diff);
                         alertString = diff + " Days due to start Date";
                         colorFlag[rowIndex]=REMINDER_COLOR_YELLOW;
                     }else if(diff<0){
@@ -94,7 +103,8 @@ public class PJMS extends javax.swing.JFrame {
                         alertString = "Task is over start date " + diff + " days";
                         colorFlag[rowIndex]=REMINDER_COLOR_RED;
                     }                    
-                }else if(eda==null){
+                }else if(eda==null&&edp!=null){
+                    diff = Math.abs(diff);
                     diff = countTwoDate(edp,now);
                     if(diff>=0&&diff<=REMINDER_DAY){
                         alertString = diff + " Days due to end Date";
@@ -104,9 +114,10 @@ public class PJMS extends javax.swing.JFrame {
                         alertString = "Task is over end date " + diff + " days";
                         colorFlag[rowIndex]=REMINDER_COLOR_RED;
                     }    
-                }
-                rowIndex++;
+                }                
+                rowIndex++;                
                 taskTableModel.addRow(new Object[]{l.getId(),l.getName(),l.getDescription(),l.getPersonInChargeName(),l.getIsCompleted(),alertString,l.getStartDatePlanned(),l.getEndDatePlanned(),l.getStartDateActual(),l.getEndDateActual()});
+                alertString="";
             }   
     }
     private void loadTasksById(int id){
@@ -134,10 +145,11 @@ public class PJMS extends javax.swing.JFrame {
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Load projects information failure!\n" + ex.getMessage(),
+                    "Load tasks information failure!\n" + ex.getMessage(),
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        }        
+        }  
+        mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new EvenOddRenderer());
     }
     private void loadAllProjects(){
         for(int i=projectTableModel.getRowCount()-1;i>=0;i--){
@@ -156,7 +168,7 @@ public class PJMS extends javax.swing.JFrame {
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
         }        
-        mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new EvenOddRenderer());
+        //mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new EvenOddRenderer());
     }
     /**
      * Creates new form Login
@@ -198,8 +210,8 @@ public class PJMS extends javax.swing.JFrame {
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
-        jPopupMenu1 = new javax.swing.JPopupMenu();
-        jMenuItem4 = new javax.swing.JMenuItem();
+        mainDlg_pmProjects = new javax.swing.JPopupMenu();
+        mainDlg_pmShowDetail = new javax.swing.JMenuItem();
         jDialog2 = new javax.swing.JDialog();
         jPanel1 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
@@ -379,8 +391,13 @@ public class PJMS extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jMenuItem4.setText("jMenuItem4");
-        jPopupMenu1.add(jMenuItem4);
+        mainDlg_pmShowDetail.setText("Show Detail");
+        mainDlg_pmShowDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mainDlg_pmShowDetailActionPerformed(evt);
+            }
+        });
+        mainDlg_pmProjects.add(mainDlg_pmShowDetail);
 
         jDialog2.setTitle("Add new employee");
 
@@ -1141,9 +1158,13 @@ public class PJMS extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        mainDlg_tbProjects.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         mainDlg_tbProjects.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                mainDlg_tbProjectsMouseClicked(evt);
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                mainDlg_tbProjectsMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                mainDlg_tbProjectsMouseReleased(evt);
             }
         });
         jScrollPane1.setViewportView(mainDlg_tbProjects);
@@ -1201,6 +1222,11 @@ public class PJMS extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login");
         setName("frmLogin"); // NOI18N
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                formFocusGained(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel1.setText("Password:");
@@ -1378,7 +1404,8 @@ public class PJMS extends javax.swing.JFrame {
                     JOptionPane.INFORMATION_MESSAGE);
                 //loginDlg_tfUserID.selectAll();
                 //loginDlg_tfUserID.requestFocusInWindow();
-                loginDlg_tfUserID.setText("");
+                //loginDlg_tfUserID.setText("");
+                loginInputFlag=1;
                 return false;
             }
         }else{
@@ -1400,7 +1427,8 @@ public class PJMS extends javax.swing.JFrame {
                             JOptionPane.INFORMATION_MESSAGE);
                     //loginDlg_tfUserID.selectAll();
                     //loginDlg_tfUserID.requestFocusInWindow();
-                    loginDlg_tfUserID.setText("");
+                    //loginDlg_tfUserID.setText("");
+                    loginInputFlag=1;
                     return false;
                 }
             } else {
@@ -1419,9 +1447,10 @@ public class PJMS extends javax.swing.JFrame {
                     JOptionPane.INFORMATION_MESSAGE);
             //loginDlg_pwtfPassword.selectAll();
             //loginDlg_pwtfPassword.requestFocusInWindow();
-            loginDlg_pwtfPassword.setText("");
+            //loginDlg_pwtfPassword.setText("");
+            loginInputFlag=2;
             return false;
-        }     
+        }         
         return true;
     }
     
@@ -1431,7 +1460,7 @@ public class PJMS extends javax.swing.JFrame {
             mainDlg.pack();
             mainDlg.setLocationRelativeTo(this);
             mainDlg.setVisible(true);
-        }        
+        }       
     }//GEN-LAST:event_loginDlg_btnLoginActionPerformed
 
     
@@ -1479,8 +1508,8 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_loginDlg_pwtfPasswordMouseClicked
 
     private void loginDlg_pwtfPasswordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordKeyReleased
-               
-        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
+        
+        if ((evt.getKeyChar() == KeyEvent.VK_ENTER)) {
             loginDlg_btnLogin.requestFocusInWindow();
             /*
             if (isMatchUserAccount()) {
@@ -1497,16 +1526,6 @@ public class PJMS extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_jMenu8MouseClicked
 
-    private void mainDlg_tbProjectsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMouseClicked
-        int index = mainDlg_tbProjects.getSelectedRow();
-        //mainDlg_tbProjects.setde
-        String idString = projectTableModel.getValueAt(index, 0).toString();
-        if (isInteger(idString)) {
-            int id = Integer.parseInt(idString);
-            loadTasksById(id);
-        }
-    }//GEN-LAST:event_mainDlg_tbProjectsMouseClicked
-
     private void loginDlg_tfUserIDFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDFocusGained
         loginDlg_tfUserID.selectAll();
     }//GEN-LAST:event_loginDlg_tfUserIDFocusGained
@@ -1516,7 +1535,8 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_loginDlg_pwtfPasswordFocusGained
 
     private void loginDlg_tfUserIDKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDKeyReleased
-       if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
+        
+        if ((evt.getKeyChar() == KeyEvent.VK_ENTER)) {
             loginDlg_pwtfPassword.requestFocusInWindow();
         }
     }//GEN-LAST:event_loginDlg_tfUserIDKeyReleased
@@ -1535,91 +1555,126 @@ public class PJMS extends javax.swing.JFrame {
     private void mainDlg_tbRemenderTaskMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbRemenderTaskMouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_mainDlg_tbRemenderTaskMouseClicked
-
-    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
-        /*
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        java.util.Date startDateP, endDateP, startDateA, endDateA;
-        try {
-            startDateP = sdf.parse("2018-03-10");
-            endDateP = sdf.parse("2018-03-30");
-            startDateA = sdf.parse("2018-03-12");
-            endDateA = sdf.parse("2018-03-28");
-            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, null, null, 2, true); 
-            Project projectNull = null;
-            new ProjectDetails(project).setVisible(true);
-        */
-        
+    private void showProjectEditDlg() {
         int rowindex = mainDlg_tbProjects.getSelectedRow();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
-        Project p=null;        
-        try {
-            Object ido = projectTableModel.getValueAt(rowindex, 0);
-            Object nameo = projectTableModel.getValueAt(rowindex, 1);
-            Object descriptiono = projectTableModel.getValueAt(rowindex, 2);
-            Object personInChargeo = projectTableModel.getValueAt(rowindex, 3);
-            Object isCompletedo = projectTableModel.getValueAt(rowindex, 6);
-            
-            int id = 0;
-            String name="";
-            String description ="";
-            int personInCharge=0 ;
-            boolean isCompleted = true;
-            if(ido!=null){
-               id = Integer.parseInt(ido.toString());
+        if (rowindex != -1) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
+            Project p = null;
+            try {
+                Object ido = projectTableModel.getValueAt(rowindex, 0);
+                Object nameo = projectTableModel.getValueAt(rowindex, 1);
+                Object descriptiono = projectTableModel.getValueAt(rowindex, 2);
+                Object personInChargeo = projectTableModel.getValueAt(rowindex, 3);
+                Object isCompletedo = projectTableModel.getValueAt(rowindex, 6);
+
+                int id = 0;
+                String name = "";
+                String description = "";
+                int personInCharge = 0;
+                boolean isCompleted = true;
+                if (ido != null) {
+                    id = Integer.parseInt(ido.toString());
+                }
+                if (nameo != null) {
+                    name = nameo.toString();
+                }
+                if (descriptiono != null) {
+                    description = descriptiono.toString();
+                }
+                if (personInChargeo != null) {
+                    personInCharge = Integer.parseInt(personInChargeo.toString());
+                }
+                if (isCompletedo != null) {
+                    isCompleted = Boolean.parseBoolean(isCompletedo.toString());
+                }
+                Object sdpo = projectTableModel.getValueAt(rowindex, 7);
+                Object edpo = projectTableModel.getValueAt(rowindex, 8);
+                Object sdao = projectTableModel.getValueAt(rowindex, 9);
+                Object edao = projectTableModel.getValueAt(rowindex, 10);
+                Date sdp = null;
+                Date sda = null;
+                Date edp = null;
+                Date eda = null;
+                if (sdpo != null) {
+                    sdp = sdf.parse(sdpo.toString());
+                }
+                if (edpo != null) {
+                    edp = sdf.parse(edpo.toString());
+                }
+                if (sdao != null) {
+                    sda = sdf.parse(sdao.toString());
+                }
+                if (edao != null) {
+                    eda = sdf.parse(edao.toString());
+                }
+                p = new Project(id, name, description, sdp, edp, sda, eda, personInCharge, isCompleted);
+                new ProjectDetails(p).setVisible(true);
+
+            } catch (ParseException ex) {
+                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
             }
-            if(nameo!=null){
-               name = nameo.toString();
-            }
-            if(descriptiono!=null){
-               description = descriptiono.toString();
-            }
-            if(personInChargeo!=null){
-               personInCharge = Integer.parseInt(personInChargeo.toString());
-            }
-            if(isCompletedo!=null){
-               isCompleted = Boolean.parseBoolean(isCompletedo.toString());
-            }
-            Object sdpo = projectTableModel.getValueAt(rowindex, 7);
-            Object edpo = projectTableModel.getValueAt(rowindex, 8);
-            Object sdao = projectTableModel.getValueAt(rowindex, 9);
-            Object edao = projectTableModel.getValueAt(rowindex, 10);
-            Date sdp=null;
-            Date sda=null;
-            Date edp=null;
-            Date eda=null;
-            if(sdpo!=null){
-               sdp = sdf.parse(sdpo.toString());
-            }
-            if(edpo!=null){
-               edp = sdf.parse(edpo.toString());
-            }
-            if(sdao!=null){
-               sda = sdf.parse(sdao.toString());
-            }
-            if(edao!=null){
-               eda = sdf.parse(edao.toString());
-            }
-            p = new Project(id, name,description,sdp,edp,sda,eda,personInCharge ,isCompleted);
-            new ProjectDetails(p).setVisible(true);
-        
-        } catch (ParseException ex) {
-            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
-        }      
-       
+        } else {
+            JOptionPane.showMessageDialog(null,
+                    "Please select a project!\n" ,
+                    "Control tutorial!",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
+        showProjectEditDlg();
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
-        new ProjectDetails(null).setVisible(true);
+        //new ProjectDetails(null).setVisible(true);
+        JFrame jf = new ProjectDetails(null);
+        JDialog jd = new JDialog(jf);
+        jd.setModal(true);
+        jd.pack();
+        jd.setVisible(true);
     }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
 
     private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
-       /*
        loadAllProjects();
-       loadAllTasks();
-       System.out.println("windows focuse gained");
-        */
+       loadAllTasks();       
     }//GEN-LAST:event_mainDlgWindowGainedFocus
+
+    private void mainDlg_tbProjectsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMousePressed
+        if(evt.getClickCount()==2){
+            showProjectEditDlg();
+        } else {
+            int index = mainDlg_tbProjects.getSelectedRow();
+            //mainDlg_tbProjects.setde
+            String idString = projectTableModel.getValueAt(index, 0).toString();
+            if (isInteger(idString)) {
+                int id = Integer.parseInt(idString);
+                loadTasksById(id);
+            }
+        }
+    }//GEN-LAST:event_mainDlg_tbProjectsMousePressed
+
+    private void mainDlg_pmShowDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_pmShowDetailActionPerformed
+        showProjectEditDlg();
+    }//GEN-LAST:event_mainDlg_pmShowDetailActionPerformed
+
+    private void mainDlg_tbProjectsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMouseReleased
+        
+        if (evt.isPopupTrigger()) {
+            JTable table = (JTable) evt.getSource();
+            Point point = evt.getPoint();
+            int row = table.rowAtPoint(point);
+            mainDlg_tbProjects.setRowSelectionInterval(row, row);
+            mainDlg_pmProjects.show(evt.getComponent(), evt.getX(), evt.getY());
+        }
+    }//GEN-LAST:event_mainDlg_tbProjectsMouseReleased
+
+    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
+        System.out.println("Focus Gained");
+        if(loginInputFlag==1){
+            loginDlg_tfUserID.requestFocusInWindow();
+        }else if(loginInputFlag==2){
+            loginDlg_tfUserID.requestFocusInWindow();
+        }
+    }//GEN-LAST:event_formFocusGained
 
     /**
      * @param args the command line arguments
@@ -1733,7 +1788,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
-    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -1743,7 +1797,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
-    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane11;
     private javax.swing.JScrollPane jScrollPane2;
@@ -1778,6 +1831,8 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JTextField loginDlg_tfUserID;
     private javax.swing.JDialog mainDlg;
     private javax.swing.JButton mainDlg_btnAddProject;
+    private javax.swing.JPopupMenu mainDlg_pmProjects;
+    private javax.swing.JMenuItem mainDlg_pmShowDetail;
     private javax.swing.JTable mainDlg_tbProjects;
     private javax.swing.JTable mainDlg_tbRemenderTask;
     // End of variables declaration//GEN-END:variables
