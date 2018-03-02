@@ -14,6 +14,7 @@ import java.util.Date;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -22,8 +23,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author 1796111
  */
-public class ProjectDetails extends javax.swing.JFrame {
-
+public class ProjectDetails extends javax.swing.JFrame {    
     Database db;
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     DefaultListModel<Team> modelResourceList = new DefaultListModel<>();
@@ -1136,7 +1136,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btTeamSaveActionPerformed
 
     private void pjd_btGoBackToPjListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btGoBackToPjListActionPerformed
-        this.dispose();
+        parentDlg.setVisible(true);
+        this.dispose();        
     }//GEN-LAST:event_pjd_btGoBackToPjListActionPerformed
 
     private void tsk_btCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btCancelActionPerformed
@@ -1538,6 +1539,12 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JTextField tsk_tfStartDatePlanned;
     private javax.swing.JTextField tsk_tfTaskName;
     // End of variables declaration//GEN-END:variables
-
-    
+// Jerry use this area
+  JDialog parentDlg = null; 
+  public ProjectDetails(JDialog parentDlg,Project project) {
+      this(project);
+      this.parentDlg=parentDlg;      
+  }
+  
+  // Jerry use this area
 }

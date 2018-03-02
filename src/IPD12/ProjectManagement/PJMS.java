@@ -1577,8 +1577,8 @@ public class PJMS extends javax.swing.JFrame {
                     eda = sdf.parse(edao.toString());
                 }
                 p = new Project(id, name, description, sdp, edp, sda, eda, personInCharge, isCompleted);
-                new ProjectDetails(p).setVisible(true);
-
+                new ProjectDetails(mainDlg,p).setVisible(true);
+                mainDlg.setVisible(false);
             } catch (ParseException ex) {
                 Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1594,7 +1594,8 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
-        new ProjectDetails(null).setVisible(true);
+        new ProjectDetails(mainDlg,null).setVisible(true);
+        mainDlg.setVisible(false);
         /*
         JFrame jf = new ProjectDetails(null);
         JDialog jd = new JDialog(jf);
