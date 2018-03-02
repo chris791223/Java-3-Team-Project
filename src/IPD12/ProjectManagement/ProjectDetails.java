@@ -329,6 +329,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_btTeamCancel = new javax.swing.JButton();
         pjd_btGoBackToPjList = new javax.swing.JButton();
 
+        dlgTaskEditor.setTitle("Task Editor");
         dlgTaskEditor.setModal(true);
 
         pjd_lblTitle1.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
@@ -542,7 +543,6 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
-        setAlwaysOnTop(true);
         setName("frmProjectDetails"); // NOI18N
         setResizable(false);
 
@@ -1288,7 +1288,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                 return;
             }
             dlgTaskEditor.pack();
-            dlgTaskEditor.setVisible(true);
+            
+            //dlgTaskEditor.setLocation(100, 200);
+            dlgTaskEditor.setLocationRelativeTo(this);
+            dlgTaskEditor.setVisible(false);
         }
 
     }//GEN-LAST:event_pjd_btAddTaskActionPerformed
@@ -1372,7 +1375,9 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
 
             dlgTaskEditor.pack();
+            dlgTaskEditor.setLocationRelativeTo(this);
             dlgTaskEditor.setVisible(true);
+            
         }
 
 
@@ -1426,10 +1431,12 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_tbTaskListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_tbTaskListMouseReleased
         if (evt.isPopupTrigger()) {
-            popMenuTaskEdit.show(pjd_tbTaskList, evt.getXOnScreen(), evt.getYOnScreen());
-            //int idx = pjd_taDescription.locationToIndex(evt.getPoint());
-            //lstCarList.setSelectedIndex(idx);
-            //Car car = modelCarsList.getElementAt(idx);
+            
+            int row = pjd_tbTaskList.rowAtPoint(evt.getPoint());
+            pjd_tbTaskList.setRowSelectionInterval(row, row);
+            
+            popMenuTaskEdit.show(evt.getComponent(), evt.getX(), evt.getY());
+      
         }
     }//GEN-LAST:event_pjd_tbTaskListMouseReleased
 
