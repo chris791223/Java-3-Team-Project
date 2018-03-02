@@ -309,7 +309,6 @@ public class PJMS extends javax.swing.JFrame {
         loginDlg_btnLogin = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jButton6 = new javax.swing.JButton();
-        jButton15 = new javax.swing.JButton();
         loginDlg_pwtfPassword = new javax.swing.JPasswordField();
         jSeparator1 = new javax.swing.JSeparator();
 
@@ -1250,13 +1249,6 @@ public class PJMS extends javax.swing.JFrame {
             }
         });
 
-        jButton15.setText("Project Details");
-        jButton15.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton15ActionPerformed(evt);
-            }
-        });
-
         loginDlg_pwtfPassword.setText("jPasswordField1");
         loginDlg_pwtfPassword.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -1284,8 +1276,7 @@ public class PJMS extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(26, 26, 26)
+                                .addGap(205, 205, 205)
                                 .addComponent(jButton6)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
                                 .addComponent(loginDlg_btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -1321,8 +1312,7 @@ public class PJMS extends javax.swing.JFrame {
                 .addGap(41, 41, 41)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(loginDlg_btnLogin)
-                    .addComponent(jButton6)
-                    .addComponent(jButton15))
+                    .addComponent(jButton6))
                 .addContainerGap(20, Short.MAX_VALUE))
         );
 
@@ -1438,27 +1428,6 @@ public class PJMS extends javax.swing.JFrame {
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jButton6ActionPerformed
-
-    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
-        //java.awt.EventQueue.invokeLater(new Runnable() {
-        //    public void run() {
-        //this.setVisible(false);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        java.util.Date startDateP, endDateP, startDateA, endDateA;
-        try {
-            startDateP = sdf.parse("2018-03-10");
-            endDateP = sdf.parse("2018-03-30");
-            startDateA = sdf.parse("2018-03-12");
-            endDateA = sdf.parse("2018-03-28");
-            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, null, 0, true); 
-            Project projectNull = null;
-            new ProjectDetails(project).setVisible(true);
-        }
-        catch (ParseException ex) {
-            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
-        }
- 
-    }//GEN-LAST:event_jButton15ActionPerformed
 
     private void loginDlg_tfUserIDMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDMouseClicked
         /*
@@ -1662,7 +1631,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton14;
-    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;

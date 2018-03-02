@@ -35,7 +35,7 @@ Each member writes down answers to 3 questions:
  - Find out how to use JTable.
 
 
-2018/02/28 Jing Wang
+2018/03/01 Jing Wang
 1. Done since last scrum:
 - Research on JDring library
 - Research on JTable
@@ -59,3 +59,13 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
  - Find out how to use JTable.
 
+ 2018/03/02 Jing Wang
+1. Done since last scrum:
+- Add/update Project
+- Edit project team
+- Do not finish Add/update/delete task
+2. Plan until next Scrum
+- Add/update/delete task
+- Improve system function
+3. Need assistance / figure things out
+- Figure out how the project list page refreshes after editing a project
