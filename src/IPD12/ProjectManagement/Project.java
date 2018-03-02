@@ -23,6 +23,11 @@ public class Project {
     private boolean isCompleted;
     
     // constructor
+
+    public Project(long id) {
+        this.id = id;
+    }
+    
     public Project(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long projectManager, boolean isCompleted) {
         this.id = id;
         this.name = name;

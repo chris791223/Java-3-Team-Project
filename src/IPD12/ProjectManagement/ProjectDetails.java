@@ -6,10 +6,13 @@
 package IPD12.ProjectManagement;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -23,6 +26,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     DefaultListModel<Team> modelResourceList = new DefaultListModel<>();
     DefaultListModel<Team> modelMemberList = new DefaultListModel<>();
+    private final String PLEASE_CHOOSE = "Please choose ...";
 
     /**
      * Creates new form ProjectList
@@ -98,6 +102,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // get all team members
                 ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
 
+                modelPM.addElement(PLEASE_CHOOSE);
+
                 for (Team tm : teamList) {
                     modelPM.addElement(tm.getIdName());
                     if (tm.getId() == project.getProjectManager()) {
@@ -129,6 +135,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // initial value list for project manager combo box
                 // get all availabe resourses
                 ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
+
+                modelPM.addElement(PLEASE_CHOOSE);
 
                 for (Team rsc : resourceList) {
                     modelPM.addElement(rsc.getIdName());
@@ -212,19 +220,24 @@ public class ProjectDetails extends javax.swing.JFrame {
     }
 
     public void loadTeamMember(Project project) {
-        try {
-            ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
-            ArrayList<Team> allTeamMemberList = db.getAllTeamMembers(project.getId());
-            
-            for (Team resource : allAvailableResourceList) {
-                modelResourceList.addElement(resource);
+        // initialization
+        modelResourceList.removeAllElements();
+        modelMemberList.removeAllElements();
+        
+        if (project != null) {
+            try {
+                ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
+                ArrayList<Team> allTeamMemberList = db.getAllTeamMembers(project.getId());
+
+                for (Team resource : allAvailableResourceList) {
+                    modelResourceList.addElement(resource);
+                }
+
+                for (Team member : allTeamMemberList) {
+                    modelMemberList.addElement(member);
+                }
             }
-            
-            for (Team member : allTeamMemberList) {
-                modelMemberList.addElement(member);
-            }
-        }
-        catch (SQLException ex) {
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -232,7 +245,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                         JOptionPane.ERROR_MESSAGE);
                 this.dispose();
             }
-        
+        }
+
     }
 
     /**
@@ -281,12 +295,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         pjd_lstCurTeamMember = new javax.swing.JList<>();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        pjd_btMoveToTeam = new javax.swing.JButton();
+        pjd_btMoveBackFromTeam = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         pjd_btTeamSave = new javax.swing.JButton();
         pjd_btTeamCancel = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
@@ -343,6 +356,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_chkbIsCompleted.setSelected(true);
 
         pjd_btDetailSave.setText("Save");
+        pjd_btDetailSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pjd_btDetailSaveActionPerformed(evt);
+            }
+        });
 
         pjd_btDetailCancel.setText("Cancel");
         pjd_btDetailCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -525,9 +543,19 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_lstCurTeamMember.setModel(modelMemberList);
         jScrollPane3.setViewportView(pjd_lstCurTeamMember);
 
-        jButton1.setText(">>");
+        pjd_btMoveToTeam.setText(">>");
+        pjd_btMoveToTeam.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pjd_btMoveToTeamActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText("<<");
+        pjd_btMoveBackFromTeam.setText("<<");
+        pjd_btMoveBackFromTeam.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pjd_btMoveBackFromTeamActionPerformed(evt);
+            }
+        });
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel3.setText("Current team members:");
@@ -535,6 +563,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_btTeamSave.setText("Save");
 
         pjd_btTeamCancel.setText("Cancel");
+        pjd_btTeamCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pjd_btTeamCancelActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -548,8 +581,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 481, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(27, 27, 27)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(pjd_btMoveToTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_btMoveBackFromTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
@@ -564,7 +597,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton2});
+        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {pjd_btMoveBackFromTeam, pjd_btMoveToTeam});
 
         jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jScrollPane2, jScrollPane3});
 
@@ -574,9 +607,9 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(116, 116, 116)
-                        .addComponent(jButton1)
+                        .addComponent(pjd_btMoveToTeam)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2))
+                        .addComponent(pjd_btMoveBackFromTeam))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -598,13 +631,6 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jButton3.setText("jButton3");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -619,17 +645,13 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(436, 436, 436)
                 .addComponent(jLabel1)
-                .addGap(78, 78, 78)
-                .addComponent(jButton3)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel1)
-                    .addComponent(jButton3))
+                .addGap(23, 23, 23)
+                .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(29, 29, 29)
@@ -640,6 +662,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void pjd_tfNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_tfNameActionPerformed
@@ -651,28 +674,147 @@ public class ProjectDetails extends javax.swing.JFrame {
         //this.setVisible(false);
     }//GEN-LAST:event_pjd_btDetailCancelActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        java.util.Date startDateP, endDateP, startDateA, endDateA;
-        try {
-            startDateP = sdf.parse("2018-03-10");
-            endDateP = sdf.parse("2018-03-30");
-            startDateA = sdf.parse("2018-03-12");
-            endDateA = sdf.parse("2018-03-28");
-            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, null, 2, true);
-            loadTaskList(project);
+    private void pjd_btDetailSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDetailSaveActionPerformed
+        String idStr = pjd_lblProjectId.getText();
+        String name = pjd_tfName.getText();
+        String description = pjd_taDescription.getText();
+        Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
+        boolean isCompleted = pjd_chkbIsCompleted.isSelected();
+        String projectManagerStr = (String) pjd_cbProjectManager.getSelectedItem();
+        long projectManager;
+
+        if (name.trim().compareTo("") == 0) {
+            // Show message box to the user
+            JOptionPane.showMessageDialog(this, "Error: Please enter the project name.", "Input error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        catch (Exception ex) {
 
+        if (pjd_tfStartDatePlanned.getText().trim().compareTo("") != 0) {
+            try {
+                startDatePlanned = sdf.parse(pjd_tfStartDatePlanned.getText());
+            }
+            catch (ParseException ex) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
-    }//GEN-LAST:event_jButton3ActionPerformed
+        if (pjd_tfEndDatePlanned.getText().trim().compareTo("") != 0) {
+            try {
+                endDatePlanned = sdf.parse(pjd_tfEndDatePlanned.getText());
+            }
+            catch (ParseException ex) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Planned End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
 
+        if (pjd_tfStartDateActual.getText().trim().compareTo("") != 0) {
+            try {
+                startDateActual = sdf.parse(pjd_tfStartDateActual.getText());
+            }
+            catch (ParseException ex) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        if (pjd_tfEndDateActual.getText().trim().compareTo("") != 0) {
+            try {
+                endDateActual = sdf.parse(pjd_tfEndDateActual.getText());
+            }
+            catch (ParseException ex) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Actual End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        if (projectManagerStr.compareTo(PLEASE_CHOOSE) != 0) {
+            projectManager = Long.parseLong(projectManagerStr.substring(0, projectManagerStr.indexOf(" ")));
+        }
+        else {
+            projectManager = 0;
+        }
+
+        // add new project
+        if (idStr.compareTo("") == 0) {
+            try {
+                Project project = new Project(0, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+                Long id = db.addProject(project);
+                pjd_lblProjectId.setText(id + "");
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        // update project
+        else {
+            try {
+                Project project = new Project(Long.parseLong(idStr), name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+                db.updateProject(project);
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+
+    }//GEN-LAST:event_pjd_btDetailSaveActionPerformed
+
+    private void pjd_btMoveToTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveToTeamActionPerformed
+        
+        moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);    
+ 
+    }//GEN-LAST:event_pjd_btMoveToTeamActionPerformed
+
+    private void pjd_btMoveBackFromTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveBackFromTeamActionPerformed
+        
+        moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+        
+    }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
+
+    private void pjd_btTeamCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamCancelActionPerformed
+        if (pjd_lblProjectId.getText().trim().compareTo("") != 0) {
+            Project project = new Project(Long.parseLong(pjd_lblProjectId.getText()));
+            loadTeamMember(project);
+        }
+        
+        
+    }//GEN-LAST:event_pjd_btTeamCancelActionPerformed
+
+    private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
+        // when use choose 1 or more rows
+        if (!listFrom.isSelectionEmpty()) {
+            ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
+            int[] rscIdxList = listFrom.getSelectedIndices();
+
+            int rowsForMoving = rscIdxList.length;
+            // move out from resource
+            for (int i = rowsForMoving - 1; i >= 0; i--) {
+                modelFrom.removeElementAt(rscIdxList[i]);
+            }
+            
+            // move into team
+            int sizeBeforeMoving = modelTo.getSize();
+            for (Team member : listSelected) {
+                modelTo.addElement(member);
+            }
+            // set selected items for
+            int[] idxSelected = new int[rowsForMoving];
+            for (int i = 0; i < rowsForMoving; i++){ 
+                idxSelected[i] = sizeBeforeMoving + i;
+            }
+            listTo.setSelectedIndices(idxSelected);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -698,6 +840,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JButton pjd_btDeleteTask;
     private javax.swing.JButton pjd_btDetailCancel;
     private javax.swing.JButton pjd_btDetailSave;
+    private javax.swing.JButton pjd_btMoveBackFromTeam;
+    private javax.swing.JButton pjd_btMoveToTeam;
     private javax.swing.JButton pjd_btTeamCancel;
     private javax.swing.JButton pjd_btTeamSave;
     private javax.swing.JButton pjd_btUpdateTask;
