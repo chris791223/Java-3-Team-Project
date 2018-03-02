@@ -1450,9 +1450,9 @@ public class PJMS extends javax.swing.JFrame {
             endDateP = sdf.parse("2018-03-30");
             startDateA = sdf.parse("2018-03-12");
             endDateA = sdf.parse("2018-03-28");
-            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, endDateA, 2, true); 
+            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, startDateA, null, 0, true); 
             Project projectNull = null;
-            new ProjectDetails(projectNull).setVisible(true);
+            new ProjectDetails(project).setVisible(true);
         }
         catch (ParseException ex) {
             Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
@@ -1638,18 +1638,12 @@ public class PJMS extends javax.swing.JFrame {
                 }
             }
         }
-        catch (ClassNotFoundException ex) {
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(PJMS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PJMS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PJMS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PJMS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+        //</editor-fold>
+        //</editor-fold>
+
         //</editor-fold>
         //</editor-fold>
 
