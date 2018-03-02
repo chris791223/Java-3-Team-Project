@@ -10,15 +10,23 @@ package IPD12.ProjectManagement;
  * @author wjing
  */
 public class Team {
-    private long id;
+    private long projectId;  // project id
+    private long id;         // member id
     private String name;
     private String ability;
+    private boolean isLeft;
 
     // constructor
     public Team(long id, String name, String ability) {
         this.id = id;
         this.name = name;
         this.ability = ability;
+    }
+
+    public Team(long projectId, long id, boolean isLeft) {
+        this.projectId = projectId;
+        this.id = id;
+        this.isLeft = isLeft;
     }
 
     // getters & setters
@@ -45,6 +53,24 @@ public class Team {
     public void setAbility(String ability) {
         this.ability = ability;
     }
+
+    public long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(long projectId) {
+        this.projectId = projectId;
+    }
+
+    public boolean getIsLeft() {
+        return isLeft;
+    }
+
+    public void setIsLeft(boolean isLeft) {
+        this.isLeft = isLeft;
+    }
+    
+    
 
     @Override
     public String toString() {

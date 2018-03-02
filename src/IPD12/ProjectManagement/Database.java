@@ -5,6 +5,7 @@
  */
 package IPD12.ProjectManagement;
 
+import java.lang.reflect.Member;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -233,40 +234,44 @@ public class Database {
         }
     }
     
-    public boolean checkIfMemberInTeam(long projectId, long userId) throws SQLException {
+    public Team checkIfMemberInTeam(Team member) throws SQLException {
         String sql = "SELECT * FROM teams WHERE projectId = ? and userId = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, projectId);
-            stmt.setLong(2, userId);
+            stmt.setLong(1, member.getProjectId());
+            stmt.setLong(2, member.getId());
 
             ResultSet result = stmt.executeQuery();
             if (result.next()) {
-                return true;
+                long projectId = result.getLong("projectId");
+                long userId = result.getLong("userId");
+                boolean isLeft = result.getBoolean("isLeft");
+                Team memberWithStatus = new Team(projectId, userId, isLeft);
+                return memberWithStatus;
             }
             else {
-                return false;
+                return null;
             }
         }
     }
     
-    public void addTeamMember(Team teamMember) throws SQLException {
+    public void addTeamMember(Team member) throws SQLException {
         String sql = "INSERT INTO teams (projectId, userId, isLeft) VALUES(?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, teamMember.getProjectId());
-            stmt.setLong(2, teamMember.getId());
-            stmt.setBoolean(3, teamMember.getIsLeft());
+            stmt.setLong(1, member.getProjectId());
+            stmt.setLong(2, member.getId());
+            stmt.setBoolean(3, member.getIsLeft());
             
             stmt.executeUpdate();
         } 
     }
     
-    public void updateTeamMemberStatus(Team teamMember) throws SQLException {
+    public void updateTeamMemberStatus(Team member) throws SQLException {
         String sql = "UPDATE teams set isLeft =? WHERE projectId = ? and userId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBoolean(1, teamMember.getIsLeft());
-            stmt.setLong(2, teamMember.getProjectId());
-            stmt.setLong(3, teamMember.getId());
+            stmt.setBoolean(1, member.getIsLeft());
+            stmt.setLong(2, member.getProjectId());
+            stmt.setLong(3, member.getId());
 
             stmt.executeUpdate();
         } 

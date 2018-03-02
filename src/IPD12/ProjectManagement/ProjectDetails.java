@@ -10,6 +10,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -223,7 +225,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         // initialization
         modelResourceList.removeAllElements();
         modelMemberList.removeAllElements();
-        
+
         if (project != null) {
             try {
                 ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
@@ -561,6 +563,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel3.setText("Current team members:");
 
         pjd_btTeamSave.setText("Save");
+        pjd_btTeamSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pjd_btTeamSaveActionPerformed(evt);
+            }
+        });
 
         pjd_btTeamCancel.setText("Cancel");
         pjd_btTeamCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -768,15 +775,15 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btDetailSaveActionPerformed
 
     private void pjd_btMoveToTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveToTeamActionPerformed
-        
-        moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);    
- 
+
+        moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
+
     }//GEN-LAST:event_pjd_btMoveToTeamActionPerformed
 
     private void pjd_btMoveBackFromTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveBackFromTeamActionPerformed
-        
+
         moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
-        
+
     }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
 
     private void pjd_btTeamCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamCancelActionPerformed
@@ -784,9 +791,100 @@ public class ProjectDetails extends javax.swing.JFrame {
             Project project = new Project(Long.parseLong(pjd_lblProjectId.getText()));
             loadTeamMember(project);
         }
-        
-        
+
+
     }//GEN-LAST:event_pjd_btTeamCancelActionPerformed
+
+    private void pjd_btTeamSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamSaveActionPerformed
+
+        String projectIdStr = pjd_lblProjectId.getText();
+
+        if (projectIdStr.trim().compareTo("") != 0) {
+            long projectId = Long.parseLong(projectIdStr);
+            
+            try {
+                db.setAutoCommit(false);
+
+                // process Resource List
+                int resourceSize = modelResourceList.getSize();
+                for (int i = 0; i < resourceSize; i++) {
+                    Team resource = modelResourceList.getElementAt(i);
+                    resource.setProjectId(projectId);
+
+                    // check if left from a team 
+                    Team memberWithStatus = db.checkIfMemberInTeam(resource);
+                    if (memberWithStatus != null) {
+                        resource.setIsLeft(true);
+                        // update isLeft = true
+                        db.updateTeamMemberStatus(resource);
+
+                        User user = new User(resource.getId(), true);
+                        // update resource to available status
+                        db.updateUserStatus(user);
+                    }
+                }
+
+                // process Team List
+                int teamSize = modelMemberList.getSize();
+
+                for (int i = 0; i < teamSize; i++) {
+                    Team member = modelMemberList.getElementAt(i);
+                    member.setProjectId(projectId);
+
+                    // check if new member who joins the team 
+                    Team memberWithStatus = db.checkIfMemberInTeam(member);
+
+                    // new member
+                    if (memberWithStatus == null) {
+                        System.out.println(member.getId());
+                        member.setIsLeft(false);
+                        User user = new User(member.getId(), false);
+                        // add new member
+                        db.addTeamMember(member);
+                        // update resource to unavailable status
+                        db.updateUserStatus(user);
+                    }
+                    // member who left team and join team again
+                    else if (memberWithStatus.getIsLeft()) {
+                        member.setIsLeft(false);
+                        User user = new User(member.getId(), false);
+                        // update isLeft = true
+                        db.updateTeamMemberStatus(member);
+                        // update resource to unavailable status
+                        db.updateUserStatus(user);
+                    }
+                    
+                }
+
+                db.commitUpdate();
+                //reload team member
+                Project project = new Project(projectId);
+                loadTeamMember(project);
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error: team update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    db.rollbackUpdate();
+                }
+                catch (SQLException ex1) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            finally {
+                try {
+                    db.setAutoCommit(true);
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+
+
+    }//GEN-LAST:event_pjd_btTeamSaveActionPerformed
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
@@ -799,7 +897,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (int i = rowsForMoving - 1; i >= 0; i--) {
                 modelFrom.removeElementAt(rscIdxList[i]);
             }
-            
+
             // move into team
             int sizeBeforeMoving = modelTo.getSize();
             for (Team member : listSelected) {
@@ -807,7 +905,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
             // set selected items for
             int[] idxSelected = new int[rowsForMoving];
-            for (int i = 0; i < rowsForMoving; i++){ 
+            for (int i = 0; i < rowsForMoving; i++) {
                 idxSelected[i] = sizeBeforeMoving + i;
             }
             listTo.setSelectedIndices(idxSelected);
