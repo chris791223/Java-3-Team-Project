@@ -1426,7 +1426,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_tbTaskListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_tbTaskListMouseReleased
         if (evt.isPopupTrigger()) {
-            popMenuTaskEdit.show(this, evt.getX(), evt.getY());
+            popMenuTaskEdit.show(pjd_tbTaskList, evt.getXOnScreen(), evt.getYOnScreen());
             //int idx = pjd_taDescription.locationToIndex(evt.getPoint());
             //lstCarList.setSelectedIndex(idx);
             //Car car = modelCarsList.getElementAt(idx);
