@@ -4,30 +4,160 @@
  * and open the template in the editor.
  */
 package IPD12.ProjectManagement;
-
+;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.util.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
-/**
- *
- * @author 莫亚泥
- */
+
 public class PJMS extends javax.swing.JFrame {
 
-    private boolean firstInputUserID=true;
-    private boolean firstInputPassword=true;
-    
+   
     private final Pattern EMAL_PATTERN = Pattern.compile(".+@.+");
+    private DefaultTableModel projectTableModel=null;
+    private DefaultTableModel taskTableModel=null;
+    private final int REMINDER_DAY = 2;
+    private final int REMINDER_COLOR_RED = 1;
+    private final int REMINDER_COLOR_BLUE = 2;
+    private final int REMINDER_COLOR_YELLOW = 3;
+    private int[] colorFlag;
     private Database db;
+    
+    class EvenOddRenderer implements TableCellRenderer {
+
+    public final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
+    
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        Component renderer
+                = DEFAULT_RENDERER.getTableCellRendererComponent(table, value,
+                        isSelected, hasFocus, row, column);
+        Color background=null;
+        if (column == 5) {
+            if(colorFlag[row]==REMINDER_COLOR_RED){
+                background = Color.RED;
+            }else if(colorFlag[row]==REMINDER_COLOR_YELLOW){
+                background = Color.YELLOW;
+            }
+        }         
+        renderer.setBackground(background);
+        return renderer;
+    }
+
+}
+    
+    public static boolean isInteger(String str) {
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    private double countTwoDate(Date d1,Date d2){
+        return Math.ceil((d1.getTime()-d2.getTime())/(1000*3600*24.0));
+    }
+    private void showTasksList(ArrayList<Task> pList){
+        colorFlag = new int[pList.size()];            
+            int rowIndex=0;
+            String alertString = "";
+            double diff;
+            for(Task l : pList){
+                Date now = new Date();  
+                Date sdp = l.getStartDatePlanned();
+                Date sda = l.getStartDateActual();
+                Date edp = l.getEndDatePlanned();
+                Date eda = l.getEndDateActual();                
+                if(sda==null){
+                    diff = countTwoDate(sdp,now);
+                    if(diff>=0&&diff<=REMINDER_DAY){
+                        alertString = diff + " Days due to start Date";
+                        colorFlag[rowIndex]=REMINDER_COLOR_YELLOW;
+                    }else if(diff<0){
+                        diff = Math.abs(diff);
+                        alertString = "Task is over start date " + diff + " days";
+                        colorFlag[rowIndex]=REMINDER_COLOR_RED;
+                    }                    
+                }else if(eda==null){
+                    diff = countTwoDate(edp,now);
+                    if(diff>=0&&diff<=REMINDER_DAY){
+                        alertString = diff + " Days due to end Date";
+                        colorFlag[rowIndex]=REMINDER_COLOR_YELLOW;
+                    }else if(diff<0){
+                        diff = Math.abs(diff);
+                        alertString = "Task is over end date " + diff + " days";
+                        colorFlag[rowIndex]=REMINDER_COLOR_RED;
+                    }    
+                }
+                rowIndex++;
+                taskTableModel.addRow(new Object[]{l.getId(),l.getName(),l.getDescription(),l.getPersonInChargeName(),l.getIsCompleted(),alertString,l.getStartDatePlanned(),l.getEndDatePlanned(),l.getStartDateActual(),l.getEndDateActual()});
+            }   
+    }
+    private void loadTasksById(int id){
+        for(int i=taskTableModel.getRowCount()-1;i>=0;i--){
+            taskTableModel.removeRow(i);
+        }        
+        try {
+            ArrayList<Task> pList = db.getTasksById(id);
+            showTasksList(pList);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Load projects information failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }        
+    }
+    private void loadAllTasks(){
+        for(int i=taskTableModel.getRowCount()-1;i>=0;i--){
+            taskTableModel.removeRow(i);
+        }        
+        try {
+            ArrayList<Task> pList = db.getAllTasks();
+            showTasksList(pList);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Load projects information failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }        
+    }
+    private void loadAllProjects(){
+        for(int i=projectTableModel.getRowCount()-1;i>=0;i--){
+            projectTableModel.removeRow(i);
+        }
+        
+        try {
+            ArrayList<Project> pList = db.getAllProjects();
+            for(Project l : pList){
+                projectTableModel.addRow(new Object[]{l.getId(),l.getName(),l.getDescription(),l.getProjectManager(),l.getPMName(),l.getTasknums(),l.getIsCompleted(),l.getStartDatePlanned(),l.getEndDatePlanned(),l.getStartDateActual(),l.getEndDateActual()});
+            }            
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Load projects information failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }        
+        mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new EvenOddRenderer());
+    }
     /**
      * Creates new form Login
      */
@@ -43,6 +173,10 @@ public class PJMS extends javax.swing.JFrame {
             System.exit(1);
         }
         initComponents();
+        projectTableModel =(DefaultTableModel)mainDlg_tbProjects.getModel();   
+        taskTableModel = (DefaultTableModel)mainDlg_tbRemenderTask.getModel();   
+        loadAllProjects();
+        loadAllTasks();        
     }
 
     /**
@@ -152,24 +286,27 @@ public class PJMS extends javax.swing.JFrame {
         jDialog6 = new javax.swing.JDialog();
         jScrollPane7 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jDialog7 = new javax.swing.JDialog();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable3 = new javax.swing.JTable();
+        mainDlg = new javax.swing.JDialog();
         jLabel30 = new javax.swing.JLabel();
         jPanel9 = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
-        jScrollPane9 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
-        jButton16 = new javax.swing.JButton();
+        jScrollPane11 = new javax.swing.JScrollPane();
+        mainDlg_tbRemenderTask = new javax.swing.JTable();
+        jLabel34 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jLabel35 = new javax.swing.JLabel();
+        mainDlg_btnAddProject = new javax.swing.JButton();
         jButton14 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        mainDlg_tbProjects = new javax.swing.JTable();
         jMenuBar4 = new javax.swing.JMenuBar();
         jMenu7 = new javax.swing.JMenu();
         jMenu8 = new javax.swing.JMenu();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         loginDlg_tfUserID = new javax.swing.JTextField();
-        jCheckBox1 = new javax.swing.JCheckBox();
-        jButton1 = new javax.swing.JButton();
+        loginDlg_btnLogin = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jButton6 = new javax.swing.JButton();
         jButton15 = new javax.swing.JButton();
@@ -872,109 +1009,193 @@ public class PJMS extends javax.swing.JFrame {
                 .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jDialog7.setTitle("Main Dialog");
-
-        jTable3.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"1000", "John Smith", "kldlkjglkajlkfsfsfsdfasfjjklgljkdfafgsgdsg", "2018-03-22", "2018-4-30", "2018-03-28", "2018-05-12", "Jerry", "yes"},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "ID", "Name", "Description", "PlanStartDate", "PlanEndDate", "ActualStartDate", "ActualEndDate", "Manager", "IsCompleted"
+        mainDlg.setTitle("Main Dialog");
+        mainDlg.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+                mainDlgWindowGainedFocus(evt);
             }
-        ));
-        jScrollPane1.setViewportView(jTable3);
+            public void windowLostFocus(java.awt.event.WindowEvent evt) {
+            }
+        });
 
         jLabel30.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel30.setText("Project List:");
 
         jPanel9.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel29.setText("Reminder:");
+        jLabel29.setText("Task Reminder:");
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "1. ABC Project,Task: 102, Create user login dialog, overtime", "2. CBN Project, Task:491, Improve main interface dialog,2 days left", "3. LDId Project, Task:422, Add a new JTree component to the task dialog, 1 day left.", "4. DKKl Project, Develop a e-commence website for marketing bike, 1 months left." };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        mainDlg_tbRemenderTask.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "ID", "Name", "Description", "InChargePerson", "IsCompleted", "ReminderInfo", "PlanStartDate", "PlanEndDate", "ActualStartDate", "ActualEndDate"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Long.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
         });
-        jScrollPane9.setViewportView(jList1);
+        mainDlg_tbRemenderTask.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                mainDlg_tbRemenderTaskMouseClicked(evt);
+            }
+        });
+        jScrollPane11.setViewportView(mainDlg_tbRemenderTask);
+
+        jLabel34.setText("Near time");
+
+        jButton1.setBackground(new java.awt.Color(255, 0, 0));
+
+        jButton2.setBackground(new java.awt.Color(255, 255, 0));
+
+        jLabel35.setText("Over time");
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
-                .addComponent(jLabel29)
-                .addContainerGap(852, Short.MAX_VALUE))
-            .addComponent(jScrollPane9)
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel9Layout.createSequentialGroup()
+                        .addComponent(jLabel29)
+                        .addGap(373, 373, 373)
+                        .addComponent(jLabel34)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel35)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 451, Short.MAX_VALUE))
+                    .addComponent(jScrollPane11, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
-                .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(4, 4, 4)
-                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE))
+                .addGap(5, 5, 5)
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel34)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel35))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane11, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jButton16.setText("Add New project");
+        mainDlg_btnAddProject.setText("Add New project");
+        mainDlg_btnAddProject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mainDlg_btnAddProjectActionPerformed(evt);
+            }
+        });
 
         jButton14.setText("Project Detail");
+        jButton14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton14ActionPerformed(evt);
+            }
+        });
+
+        mainDlg_tbProjects.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "ID", "Name", "Description", "ManagerID", "ManagerName", "TaskNumbers", "IsCompleted", "PlanStartDate", "PlanEndDate", "ActualStartDate", "ActualEndDate"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Long.class, java.lang.String.class, java.lang.String.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        mainDlg_tbProjects.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                mainDlg_tbProjectsMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(mainDlg_tbProjects);
 
         jMenu7.setText("File");
         jMenuBar4.add(jMenu7);
 
-        jMenu8.setText("Alert Box");
+        jMenu8.setText("Exit");
+        jMenu8.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jMenu8MouseClicked(evt);
+            }
+        });
         jMenuBar4.add(jMenu8);
 
-        jDialog7.setJMenuBar(jMenuBar4);
+        mainDlg.setJMenuBar(jMenuBar4);
 
-        javax.swing.GroupLayout jDialog7Layout = new javax.swing.GroupLayout(jDialog7.getContentPane());
-        jDialog7.getContentPane().setLayout(jDialog7Layout);
-        jDialog7Layout.setHorizontalGroup(
-            jDialog7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jDialog7Layout.createSequentialGroup()
+        javax.swing.GroupLayout mainDlgLayout = new javax.swing.GroupLayout(mainDlg.getContentPane());
+        mainDlg.getContentPane().setLayout(mainDlgLayout);
+        mainDlgLayout.setHorizontalGroup(
+            mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainDlgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jDialog7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addGroup(jDialog7Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton16)
-                        .addGap(60, 60, 60)
-                        .addComponent(jButton14))
+                .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jDialog7Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, mainDlgLayout.createSequentialGroup()
                         .addComponent(jLabel30)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(mainDlg_btnAddProject)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton14)
+                        .addGap(28, 28, 28))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING))
                 .addContainerGap())
         );
-        jDialog7Layout.setVerticalGroup(
-            jDialog7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jDialog7Layout.createSequentialGroup()
-                .addContainerGap(21, Short.MAX_VALUE)
-                .addComponent(jLabel30)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jDialog7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton16)
-                    .addComponent(jButton14))
-                .addGap(13, 13, 13)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+        mainDlgLayout.setVerticalGroup(
+            mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainDlgLayout.createSequentialGroup()
+                .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(mainDlgLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel30)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(mainDlgLayout.createSequentialGroup()
+                        .addContainerGap(14, Short.MAX_VALUE)
+                        .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(mainDlg_btnAddProject)
+                            .addComponent(jButton14))
+                        .addGap(18, 18, 18)))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(42, 42, 42)
+                .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -989,19 +1210,32 @@ public class PJMS extends javax.swing.JFrame {
 
         loginDlg_tfUserID.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         loginDlg_tfUserID.setText("Email or Employee ID");
+        loginDlg_tfUserID.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                loginDlg_tfUserIDFocusGained(evt);
+            }
+        });
         loginDlg_tfUserID.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 loginDlg_tfUserIDMouseClicked(evt);
             }
         });
+        loginDlg_tfUserID.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                loginDlg_tfUserIDKeyReleased(evt);
+            }
+        });
 
-        jCheckBox1.setText("remember");
-
-        jButton1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
-        jButton1.setText("Login");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        loginDlg_btnLogin.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
+        loginDlg_btnLogin.setText("Login");
+        loginDlg_btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                loginDlg_btnLoginActionPerformed(evt);
+            }
+        });
+        loginDlg_btnLogin.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                loginDlg_btnLoginKeyPressed(evt);
             }
         });
 
@@ -1024,6 +1258,11 @@ public class PJMS extends javax.swing.JFrame {
         });
 
         loginDlg_pwtfPassword.setText("jPasswordField1");
+        loginDlg_pwtfPassword.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                loginDlg_pwtfPasswordFocusGained(evt);
+            }
+        });
         loginDlg_pwtfPassword.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 loginDlg_pwtfPasswordMouseClicked(evt);
@@ -1047,14 +1286,9 @@ public class PJMS extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(26, 26, 26)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jCheckBox1)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jButton6)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(jButton6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                                .addComponent(loginDlg_btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1076,7 +1310,7 @@ public class PJMS extends javax.swing.JFrame {
                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(11, 11, 11)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(31, 31, 31)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginDlg_tfUserID, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -1084,11 +1318,9 @@ public class PJMS extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginDlg_pwtfPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE))
-                .addGap(16, 16, 16)
-                .addComponent(jCheckBox1)
-                .addGap(18, 18, 18)
+                .addGap(41, 41, 41)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
+                    .addComponent(loginDlg_btnLogin)
                     .addComponent(jButton6)
                     .addComponent(jButton15))
                 .addContainerGap(20, Short.MAX_VALUE))
@@ -1123,7 +1355,7 @@ public class PJMS extends javax.swing.JFrame {
         return matcher.find();
     }
     
-    private void matchUserAccount(){
+    private boolean isMatchUserAccount(){
         String userID = loginDlg_tfUserID.getText();
         char[] passwordInput = loginDlg_pwtfPassword.getPassword();
         String passwordDB="";
@@ -1137,36 +1369,46 @@ public class PJMS extends javax.swing.JFrame {
                     "Select password from users by Email failure!\n" + ex.getMessage(),
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+                return false;
             }
             if(passwordDB.isEmpty()){
                 JOptionPane.showMessageDialog(null,
                     "You are enter a wrong email!\n" ,
                     "Email wrong!",
                     JOptionPane.INFORMATION_MESSAGE);
-                loginDlg_tfUserID.selectAll();
-                loginDlg_tfUserID.requestFocusInWindow();
-                return;
+                //loginDlg_tfUserID.selectAll();
+                //loginDlg_tfUserID.requestFocusInWindow();
+                loginDlg_tfUserID.setText("");
+                return false;
             }
         }else{
-            try {
-                passwordDB = db.getPasswordByEmployeeID(userID);
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+            if (isInteger(userID)) {
+                try {
+                    passwordDB = db.getPasswordByEmployeeID(userID);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null,
+                            "Select password from users by ID failure!\n" + ex.getMessage(),
+                            "Database error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+                if (passwordDB.isEmpty()) {
+                    JOptionPane.showMessageDialog(null,
+                            "You are enter a wrong Employee ID!\n",
+                            "Employee ID wrong!",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    //loginDlg_tfUserID.selectAll();
+                    //loginDlg_tfUserID.requestFocusInWindow();
+                    loginDlg_tfUserID.setText("");
+                    return false;
+                }
+            } else {
                 JOptionPane.showMessageDialog(null,
-                    "Select password from users by ID failure!\n" + ex.getMessage(),
-                    "Database error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if(passwordDB.isEmpty()){
-                JOptionPane.showMessageDialog(null,
-                    "You are enter a wrong Employee ID!\n" ,
-                    "Employee ID wrong!",
-                    JOptionPane.INFORMATION_MESSAGE);
-                loginDlg_tfUserID.selectAll();
-                loginDlg_tfUserID.requestFocusInWindow();
-                return;
+                        "You entered a ID that may contain characters!\n",
+                        "Enter error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
             }
         }
         passwordDBChar = passwordDB.toCharArray();
@@ -1175,18 +1417,22 @@ public class PJMS extends javax.swing.JFrame {
                     "You are enter a wrong password!\n" ,
                     "Password wrong!",
                     JOptionPane.INFORMATION_MESSAGE);
-            loginDlg_pwtfPassword.selectAll();
-            loginDlg_pwtfPassword.requestFocusInWindow();
-            return;
-        }
-        this.setVisible(false);
-        jDialog7.pack();
-        jDialog7.setVisible(true);
+            //loginDlg_pwtfPassword.selectAll();
+            //loginDlg_pwtfPassword.requestFocusInWindow();
+            loginDlg_pwtfPassword.setText("");
+            return false;
+        }     
+        return true;
     }
     
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        matchUserAccount();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void loginDlg_btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginActionPerformed
+        if (isMatchUserAccount()) {
+            this.setVisible(false);
+            mainDlg.pack();
+            mainDlg.setLocationRelativeTo(this);
+            mainDlg.setVisible(true);
+        }        
+    }//GEN-LAST:event_loginDlg_btnLoginActionPerformed
 
     
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
@@ -1215,25 +1461,165 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton15ActionPerformed
 
     private void loginDlg_tfUserIDMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDMouseClicked
+        /*
         if(firstInputUserID){
             firstInputUserID=false;
             loginDlg_tfUserID.setText("");
         }
+        */
     }//GEN-LAST:event_loginDlg_tfUserIDMouseClicked
 
     private void loginDlg_pwtfPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordMouseClicked
+        /*
         if(firstInputPassword){
             firstInputPassword=false;
             loginDlg_pwtfPassword.setText("");
         }
+        */
     }//GEN-LAST:event_loginDlg_pwtfPasswordMouseClicked
 
     private void loginDlg_pwtfPasswordKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordKeyReleased
-        
+               
         if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
-           matchUserAccount();
+            loginDlg_btnLogin.requestFocusInWindow();
+            /*
+            if (isMatchUserAccount()) {
+                this.setVisible(false);
+                mainDlg.pack();
+                mainDlg.setLocationRelativeTo(this);
+                mainDlg.setVisible(true);
+            }
+            */
         }
     }//GEN-LAST:event_loginDlg_pwtfPasswordKeyReleased
+
+    private void jMenu8MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenu8MouseClicked
+        System.exit(0);
+    }//GEN-LAST:event_jMenu8MouseClicked
+
+    private void mainDlg_tbProjectsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMouseClicked
+        int index = mainDlg_tbProjects.getSelectedRow();
+        //mainDlg_tbProjects.setde
+        String idString = projectTableModel.getValueAt(index, 0).toString();
+        if (isInteger(idString)) {
+            int id = Integer.parseInt(idString);
+            loadTasksById(id);
+        }
+    }//GEN-LAST:event_mainDlg_tbProjectsMouseClicked
+
+    private void loginDlg_tfUserIDFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDFocusGained
+        loginDlg_tfUserID.selectAll();
+    }//GEN-LAST:event_loginDlg_tfUserIDFocusGained
+
+    private void loginDlg_pwtfPasswordFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordFocusGained
+        loginDlg_pwtfPassword.selectAll();
+    }//GEN-LAST:event_loginDlg_pwtfPasswordFocusGained
+
+    private void loginDlg_tfUserIDKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDKeyReleased
+       if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
+            loginDlg_pwtfPassword.requestFocusInWindow();
+        }
+    }//GEN-LAST:event_loginDlg_tfUserIDKeyReleased
+
+    private void loginDlg_btnLoginKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginKeyPressed
+        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {            
+            if (isMatchUserAccount()) {
+                this.setVisible(false);
+                mainDlg.pack();
+                mainDlg.setLocationRelativeTo(this);
+                mainDlg.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_loginDlg_btnLoginKeyPressed
+
+    private void mainDlg_tbRemenderTaskMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbRemenderTaskMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_mainDlg_tbRemenderTaskMouseClicked
+
+    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
+        /*
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date startDateP, endDateP, startDateA, endDateA;
+        try {
+            startDateP = sdf.parse("2018-03-10");
+            endDateP = sdf.parse("2018-03-30");
+            startDateA = sdf.parse("2018-03-12");
+            endDateA = sdf.parse("2018-03-28");
+            Project project = new Project(10001, "ABS Inc Core-System Project", "Core-System re-build", startDateP, endDateP, null, null, 2, true); 
+            Project projectNull = null;
+            new ProjectDetails(project).setVisible(true);
+        */
+        
+        int rowindex = mainDlg_tbProjects.getSelectedRow();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
+        Project p=null;        
+        try {
+            Object ido = projectTableModel.getValueAt(rowindex, 0);
+            Object nameo = projectTableModel.getValueAt(rowindex, 1);
+            Object descriptiono = projectTableModel.getValueAt(rowindex, 2);
+            Object personInChargeo = projectTableModel.getValueAt(rowindex, 3);
+            Object isCompletedo = projectTableModel.getValueAt(rowindex, 6);
+            
+            int id = 0;
+            String name="";
+            String description ="";
+            int personInCharge=0 ;
+            boolean isCompleted = true;
+            if(ido!=null){
+               id = Integer.parseInt(ido.toString());
+            }
+            if(nameo!=null){
+               name = nameo.toString();
+            }
+            if(descriptiono!=null){
+               description = descriptiono.toString();
+            }
+            if(personInChargeo!=null){
+               personInCharge = Integer.parseInt(personInChargeo.toString());
+            }
+            if(isCompletedo!=null){
+               isCompleted = Boolean.parseBoolean(isCompletedo.toString());
+            }
+            Object sdpo = projectTableModel.getValueAt(rowindex, 7);
+            Object edpo = projectTableModel.getValueAt(rowindex, 8);
+            Object sdao = projectTableModel.getValueAt(rowindex, 9);
+            Object edao = projectTableModel.getValueAt(rowindex, 10);
+            Date sdp=null;
+            Date sda=null;
+            Date edp=null;
+            Date eda=null;
+            if(sdpo!=null){
+               sdp = sdf.parse(sdpo.toString());
+            }
+            if(edpo!=null){
+               edp = sdf.parse(edpo.toString());
+            }
+            if(sdao!=null){
+               sda = sdf.parse(sdao.toString());
+            }
+            if(edao!=null){
+               eda = sdf.parse(edao.toString());
+            }
+            p = new Project(id, name,description,sdp,edp,sda,eda,personInCharge ,isCompleted);
+            new ProjectDetails(p).setVisible(true);
+        
+        } catch (ParseException ex) {
+            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+        }      
+       
+    }//GEN-LAST:event_jButton14ActionPerformed
+
+    private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
+        new ProjectDetails(null).setVisible(true);
+    }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
+
+    private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
+       /*
+       loadAllProjects();
+       loadAllTasks();
+       System.out.println("windows focuse gained");
+        */
+    }//GEN-LAST:event_mainDlgWindowGainedFocus
 
     /**
      * @param args the command line arguments
@@ -1283,7 +1669,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton15;
-    private javax.swing.JButton jButton16;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
@@ -1291,7 +1677,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JComboBox<String> jComboBox3;
@@ -1303,7 +1688,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JDialog jDialog4;
     private javax.swing.JDialog jDialog5;
     private javax.swing.JDialog jDialog6;
-    private javax.swing.JDialog jDialog7;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1329,13 +1713,14 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
     private javax.swing.JLabel jLabel32;
+    private javax.swing.JLabel jLabel34;
+    private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JList<String> jList1;
     private javax.swing.JList<String> jList2;
     private javax.swing.JList<String> jList3;
     private javax.swing.JList<String> jList4;
@@ -1366,6 +1751,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane11;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -1373,13 +1759,11 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JScrollPane jScrollPane8;
-    private javax.swing.JScrollPane jScrollPane9;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
-    private javax.swing.JTable jTable3;
     private javax.swing.JTextField jTextField10;
     private javax.swing.JTextField jTextField11;
     private javax.swing.JTextField jTextField12;
@@ -1395,7 +1779,12 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField8;
     private javax.swing.JTextField jTextField9;
     private javax.swing.JTree jTree1;
+    private javax.swing.JButton loginDlg_btnLogin;
     private javax.swing.JPasswordField loginDlg_pwtfPassword;
     private javax.swing.JTextField loginDlg_tfUserID;
+    private javax.swing.JDialog mainDlg;
+    private javax.swing.JButton mainDlg_btnAddProject;
+    private javax.swing.JTable mainDlg_tbProjects;
+    private javax.swing.JTable mainDlg_tbRemenderTask;
     // End of variables declaration//GEN-END:variables
 }

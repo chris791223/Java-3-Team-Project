@@ -21,6 +21,9 @@ public class Task {
     private Date endDateActual;
     private long personInCharge;
     private boolean isCompleted;
+    private String personInChargeName;
+
+    
 
     // constructor
     public Task(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted) {
@@ -100,7 +103,7 @@ public class Task {
         this.personInCharge = personInCharge;
     }
 
-    public boolean isIsCompleted() {
+    public boolean getIsCompleted() {
         return isCompleted;
     }
 
@@ -111,6 +114,26 @@ public class Task {
    // For Jerry
    ////////////////////////////////////////////////////////////////////
     
+    public Task(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted, String personInChargeName) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.startDatePlanned = startDatePlanned;
+        this.endDatePlanned = endDatePlanned;
+        this.startDateActual = startDateActual;
+        this.endDateActual = endDateActual;
+        this.personInCharge = personInCharge;
+        this.isCompleted = isCompleted;
+        this.personInChargeName = personInChargeName;
+    }   
+    
+    public String getPersonInChargeName() {
+        return personInChargeName;
+    }
+
+    public void setPersonInChargeName(String personInChargeName) {
+        this.personInChargeName = personInChargeName;
+    } 
     
    ////////////////////////////////////////////////////////////////////
     

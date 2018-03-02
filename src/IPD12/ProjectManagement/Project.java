@@ -18,11 +18,14 @@ public class Project {
     private Date startDatePlanned;
     private Date endDatePlanned;
     private Date startDateActual;
-    private Date endDateActual;
-    private long projectManager;
+    private Date endDateActual;    
     private boolean isCompleted;
+    private long projectManager;
+    private String PMName;
+    private int tasknums;
     
     // constructor
+
     public Project(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long projectManager, boolean isCompleted) {
         this.id = id;
         this.name = name;
@@ -31,9 +34,9 @@ public class Project {
         this.endDatePlanned = endDatePlanned;
         this.startDateActual = startDateActual;
         this.endDateActual = endDateActual;
-        this.projectManager = projectManager;
         this.isCompleted = isCompleted;
-    }
+        this.projectManager = projectManager;
+    }    
 
     // setters and getters
     public long getId() {
@@ -110,7 +113,41 @@ public class Project {
     
    // For Jerry
    ////////////////////////////////////////////////////////////////////
+   public Project(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, boolean isCompleted,long projectManager,String PMName,int tasknums) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.startDatePlanned = startDatePlanned;
+        this.endDatePlanned = endDatePlanned;
+        this.startDateActual = startDateActual;
+        this.endDateActual = endDateActual;
+        this.projectManager = projectManager;
+        this.isCompleted = isCompleted;
+        this.PMName = PMName;
+        this.tasknums = tasknums;
+    }
+   
+    public int getTasknums() {
+        return tasknums;
+    }
+
+    public void setTasknums(int tasknums) {
+        this.tasknums = tasknums;
+    }
     
-    
+    /**
+     * @return the PMName
+     */
+    public String getPMName() {
+        return PMName;
+    }
+
+    /**
+     * @param PMName the PMName to set
+     */
+    public void setPMName(String PMName) {
+        this.PMName = PMName;
+    }
    ////////////////////////////////////////////////////////////////////
+
 }

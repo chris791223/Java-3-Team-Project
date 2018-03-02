@@ -8,6 +8,7 @@ package IPD12.ProjectManagement;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
+import java.util.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -149,7 +150,85 @@ public class Database {
     
    // For Jerry
    ////////////////////////////////////////////////////////////////////
-   
+    public ArrayList<Task> getAllTasks() throws SQLException{
+        String sql = "SELECT * FROM tasks";
+        ArrayList<Task> list = new ArrayList<>();     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();            
+            while (result.next()) {
+                long taskid = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date sdp = result.getDate("startDatePlanned");
+                Date edp = result.getDate("endDatePlanned");
+                Date sda = result.getDate("startDateActual");
+                Date eda = result.getDate("endDateActual");
+                int ICPID = result.getInt("inChargePerson");
+                String ICPName = getUserNameById(ICPID);
+                boolean status = result.getBoolean("isCompleted");                                
+                Task t = new Task(taskid, name,description,sdp,edp,sda,eda,ICPID,status,ICPName);
+                list.add(t);
+            }
+        }         
+        return list;
+    }
+    
+    public ArrayList<Task> getTasksById(long id) throws SQLException{
+        String sql = "SELECT * FROM tasks where projectId=" + id;
+        ArrayList<Task> list = new ArrayList<>();     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();            
+            while (result.next()) {
+                long taskid = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date sdp = result.getDate("startDatePlanned");
+                Date edp = result.getDate("endDatePlanned");
+                Date sda = result.getDate("startDateActual");
+                Date eda = result.getDate("endDateActual");
+                int ICPID = result.getInt("inChargePerson");
+                String ICPName = getUserNameById(ICPID);
+                boolean status = result.getBoolean("isCompleted");                                
+                Task t = new Task(taskid,name,description,sdp,edp,sda,eda,ICPID,status,ICPName);
+                list.add(t);
+            }
+        }         
+        return list;
+    }
+    public String getUserNameById(int id) throws SQLException{
+        String sql = "SELECT name FROM users WHERE id =" + id;                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("name");
+            }
+        }
+        return "";
+    }
+    public ArrayList<Project> getAllProjects() throws SQLException {        
+        String sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,count(t.id) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id;";
+        ArrayList<Project> list = new ArrayList<>();     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();            
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date sdp = result.getDate("startDatePlanned");
+                Date edp = result.getDate("endDatePlanned");
+                Date sda = result.getDate("startDateActual");
+                Date eda = result.getDate("endDateActual");
+                int PMID = result.getInt("PM");
+                String PMName = getUserNameById(PMID);
+                boolean status = result.getBoolean("status");
+                int tasknums = result.getInt("tasknums");                
+                Project p = new Project(id, name,description,sdp,edp,sda,eda,status,PMID,PMName,tasknums);
+                list.add(p);
+            }
+        }         
+        return list;
+    }
+    
     public String getPasswordByEmail(String email) throws SQLException{
         String sql = "SELECT password FROM users WHERE email = ?";                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
