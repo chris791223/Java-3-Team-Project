@@ -13,6 +13,7 @@ import java.util.Date;
  */
 public class Task {
     private long id;
+    private long projectId;
     private String name;
     private String description;
     private Date startDatePlanned;
@@ -22,8 +23,6 @@ public class Task {
     private long personInCharge;
     private boolean isCompleted;
     private String personInChargeName;
-
-    
 
     // constructor
     public Task(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted) {
@@ -36,6 +35,35 @@ public class Task {
         this.endDateActual = endDateActual;
         this.personInCharge = personInCharge;
         this.isCompleted = isCompleted;
+    }
+
+    public Task(long id, long projectId, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted) {
+        this.id = id;
+        this.projectId = projectId;
+        this.name = name;
+        this.description = description;
+        this.startDatePlanned = startDatePlanned;
+        this.endDatePlanned = endDatePlanned;
+        this.startDateActual = startDateActual;
+        this.endDateActual = endDateActual;
+        this.personInCharge = personInCharge;
+        this.isCompleted = isCompleted;
+    }
+    
+    
+ 
+    public Task(long id, long projectId, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted, String personInChargeName) {
+        this.id = id;
+        this.projectId = projectId;
+        this.name = name;
+        this.description = description;
+        this.startDatePlanned = startDatePlanned;
+        this.endDatePlanned = endDatePlanned;
+        this.startDateActual = startDateActual;
+        this.endDateActual = endDateActual;
+        this.personInCharge = personInCharge;
+        this.isCompleted = isCompleted;
+        this.personInChargeName = personInChargeName;
     }
 
     // setters and getters
@@ -110,6 +138,16 @@ public class Task {
     public void setIsCompleted(boolean isCompleted) {
         this.isCompleted = isCompleted;
     }
+
+    public long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(long projectId) {
+        this.projectId = projectId;
+    }
+    
+    
     
    // For Jerry
    ////////////////////////////////////////////////////////////////////
