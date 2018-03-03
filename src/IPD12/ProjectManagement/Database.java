@@ -551,7 +551,17 @@ public class Database {
         }         
         return list;
     }
-    public String getUserNameById(int id) throws SQLException{
+    public long getUserIdByEmail(String email) throws SQLException{
+        String sql = "SELECT id FROM users WHERE email =" + email;                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getLong("id");
+            }
+        }
+        return -1;
+    }
+    public String getUserNameById(long id) throws SQLException{
         String sql = "SELECT name FROM users WHERE id =" + id;                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();
