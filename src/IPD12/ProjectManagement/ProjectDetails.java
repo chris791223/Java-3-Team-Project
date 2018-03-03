@@ -23,26 +23,31 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author 1796111
  */
-public class ProjectDetails extends javax.swing.JFrame {    
+public class ProjectDetails extends javax.swing.JFrame {
+
     Database db;
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     DefaultListModel<Team> modelResourceList = new DefaultListModel<>();
     DefaultListModel<Team> modelMemberList = new DefaultListModel<>();
     private final String PLEASE_CHOOSE = "Please choose ...";
     private final String PROJECT_EDITOR = "Project Editor:　";
+    JDialog parentDlg = null;
+    long currentProjectId;
+    Project currentProject;
+    long currentTaskId;
 
     /**
      * Creates new form ProjectList
      */
-    public ProjectDetails(Project project) {
-        
+    public ProjectDetails(long projectId) {
+
+        this.currentProjectId = projectId;
+
         try {
             // connect to db
             db = new Database();
-
-            initComponents();
-            loadProjectInfo(project);
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error connecting to database: " + e.getMessage(),
@@ -50,77 +55,108 @@ public class ProjectDetails extends javax.swing.JFrame {
                     JOptionPane.ERROR_MESSAGE);
             dispose(); // can't continue if database connection failed
         }
-        
-    }    
-    
 
-    public void loadProjectInfo(Project project) {
-        // load project details
-        loadProjectDetails(project);
-        // load task list
-        loadTaskList(project);
-        // load team member
-        loadTeamMember(project);
+        if (currentProjectId != 0) {
+            try {
+                // get current project object
+                this.currentProject = db.getProjectById(this.currentProjectId);
+
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching project information from database: " + e.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+                dispose(); // can't continue if database connection failed
+            }
+        }
+
+        initComponents();
+        loadProjectInfo();
+
     }
 
-    public void loadProjectDetails(Project project) {
+    public ProjectDetails(JDialog parentDlg, long projectId) {
+        this(projectId);
+        this.parentDlg = parentDlg;
+    }
+
+    public void loadProjectInfo() {
+        // load project details
+        loadProjectDetails();
+        // load task list
+        loadTaskList();
+        // load team member
+        loadTeamMember();
+    }
+
+    public void loadProjectDetails() {
 
         // initialization
         DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
         modelPM.removeAllElements();
 
         // load project information 
-        if (project != null) {
-            pjd_lblTitle.setText(PROJECT_EDITOR + project.getName());
-            pjd_lblProjectId.setText(project.getId() + "");
-            pjd_tfName.setText(project.getName());
-            pjd_taDescription.setText(project.getDescription());
-            if (project.getStartDatePlanned() != null) {
-                pjd_tfStartDatePlanned.setText(sdf.format(project.getStartDatePlanned()));
-            } else {
+        if (currentProjectId != 0) {
+
+            pjd_lblTitle.setText(PROJECT_EDITOR + currentProject.getName());
+            pjd_lblProjectId.setText(currentProject.getId() + "");
+            pjd_tfName.setText(currentProject.getName());
+            pjd_taDescription.setText(currentProject.getDescription());
+            if (currentProject.getStartDatePlanned() != null) {
+                pjd_tfStartDatePlanned.setText(sdf.format(currentProject.getStartDatePlanned()));
+            }
+            else {
                 pjd_tfStartDatePlanned.setText("");
             }
-            if (project.getEndDatePlanned() != null) {
-                pjd_tfEndDatePlanned.setText(sdf.format(project.getEndDatePlanned()));
-            } else {
+            if (currentProject.getEndDatePlanned() != null) {
+                pjd_tfEndDatePlanned.setText(sdf.format(currentProject.getEndDatePlanned()));
+            }
+            else {
                 pjd_tfEndDatePlanned.setText("");
             }
-            if (project.getStartDateActual() != null) {
-                pjd_tfStartDateActual.setText(sdf.format(project.getStartDateActual()));
-            } else {
+            if (currentProject.getStartDateActual() != null) {
+                pjd_tfStartDateActual.setText(sdf.format(currentProject.getStartDateActual()));
+            }
+            else {
                 pjd_tfStartDateActual.setText("");
             }
-            if (project.getEndDateActual() != null) {
-                pjd_tfEndDateActual.setText(sdf.format(project.getEndDateActual()));
-            } else {
+            if (currentProject.getEndDateActual() != null) {
+                pjd_tfEndDateActual.setText(sdf.format(currentProject.getEndDateActual()));
+            }
+            else {
                 pjd_tfEndDateActual.setText("");
             }
 
-            pjd_chkbIsCompleted.setSelected(project.getIsCompleted());
-
+            pjd_chkbIsCompleted.setSelected(currentProject.getIsCompleted());
             try {
                 // initial value list for project manager combo box
                 // get all team members
-                ArrayList<Team> teamList = db.getAllTeamMembers(project.getId());
+                ArrayList<Team> teamList = db.getAllTeamMembers(currentProject.getId());
                 modelPM.removeAllElements();
                 modelPM.addElement(PLEASE_CHOOSE);
 
                 for (Team tm : teamList) {
                     modelPM.addElement(tm.getIdName());
-                    if (tm.getId() == project.getProjectManager()) {
+                    if (tm.getId() == currentProject.getProjectManager()) {
                         modelPM.setSelectedItem(tm.getIdName());
                     }
                 }
 
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
                         "Database error",
                         JOptionPane.ERROR_MESSAGE);
-                this.dispose();
+                return;
             }
-        } else {
+
+        }
+        // add new project
+        else {
             pjd_lblProjectId.setText("");
             pjd_tfName.setText("");
             pjd_taDescription.setText("");
@@ -141,7 +177,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                     modelPM.addElement(rsc.getIdName());
                 }
 
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -153,17 +190,17 @@ public class ProjectDetails extends javax.swing.JFrame {
         }
     }
 
-    public void loadTaskList(Project project) {
+    public void loadTaskList() {
 
         DefaultTableModel tbModel = (DefaultTableModel) pjd_tbTaskList.getModel();
         // FIXED: initialization
         tbModel.getDataVector().removeAllElements();
 
-        if (project != null) {
+        if (currentProjectId != 0) {
 
             try {
                 // get task list
-                ArrayList<Task> taskList = db.getAllTasksByProjectId(project.getId());
+                ArrayList<Task> taskList = db.getAllTasksByProjectId(currentProjectId);
 
                 for (Task task : taskList) {
 
@@ -204,7 +241,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                         startDateActual, endDateActual, inCharegePerson, isCompleted});
                 }
 
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -216,31 +254,29 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     }
 
-    public void loadTeamMember(Project project) {
+    public void loadTeamMember() {
         // initialization
         modelResourceList.removeAllElements();
         modelMemberList.removeAllElements();
-
-        if (project != null) {
-            try {
-                ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
-                ArrayList<Team> allTeamMemberList = db.getAllTeamMembers(project.getId());
-
-                for (Team resource : allAvailableResourceList) {
-                    modelResourceList.addElement(resource);
-                }
-
+        try {
+            ArrayList<Team> allAvailableResourceList = db.getAllTeamAvailabeResouces();
+            for (Team resource : allAvailableResourceList) {
+                modelResourceList.addElement(resource);
+            }
+            if (currentProjectId != 0) {
+                ArrayList<Team> allTeamMemberList = db.getAllTeamMembers(currentProjectId);
                 for (Team member : allTeamMemberList) {
                     modelMemberList.addElement(member);
                 }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Error fetching data: " + ex.getMessage(),
-                        "Database error",
-                        JOptionPane.ERROR_MESSAGE);
-                this.dispose();
             }
+        }
+        catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error fetching data: " + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+            this.dispose();
         }
 
     }
@@ -944,7 +980,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btDetailCancelActionPerformed
 
     private void pjd_btDetailSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDetailSaveActionPerformed
-        String idStr = pjd_lblProjectId.getText();
+
         String name = pjd_tfName.getText();
         String description = pjd_taDescription.getText();
         Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
@@ -961,7 +997,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (pjd_tfStartDatePlanned.getText().trim().compareTo("") != 0) {
             try {
                 startDatePlanned = sdf.parse(pjd_tfStartDatePlanned.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -971,7 +1008,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (pjd_tfEndDatePlanned.getText().trim().compareTo("") != 0) {
             try {
                 endDatePlanned = sdf.parse(pjd_tfEndDatePlanned.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Planned End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -981,7 +1019,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (pjd_tfStartDateActual.getText().trim().compareTo("") != 0) {
             try {
                 startDateActual = sdf.parse(pjd_tfStartDateActual.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -991,7 +1030,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (pjd_tfEndDateActual.getText().trim().compareTo("") != 0) {
             try {
                 endDateActual = sdf.parse(pjd_tfEndDateActual.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Actual End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1000,26 +1040,75 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (projectManagerStr.compareTo(PLEASE_CHOOSE) != 0) {
             projectManager = Long.parseLong(projectManagerStr.substring(0, projectManagerStr.indexOf(" ")));
-        } else {
+        }
+        else {
             projectManager = 0;
         }
 
         // add new project
-        if (idStr.compareTo("") == 0) {
+        if (currentProjectId == 0) {
             try {
                 Project project = new Project(0, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+
+                db.setAutoCommit(false);
+                // insert to db and return new generated project id
                 Long id = db.addProject(project);
-                pjd_lblProjectId.setText(id + "");
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+                // update project to the team
+                if (projectManager != 0) {
+                    Team member = new Team(id, projectManager, false);
+                    db.addTeamMember(member);
+                    User user = new User(projectManager, false);
+                    db.updateUserStatus(user);
+                }
+                db.commitUpdate();
+                // when add successuflly, update current project id and project object
+                currentProjectId = id;
+                currentProject = project;
+                currentProject.setId(currentProjectId);
+
+                // reload project summary
+                loadProjectDetails();
+                // reload team list
+                loadTeamMember();
+
             }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    db.rollbackUpdate();
+                }
+                catch (SQLException ex1) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            finally {
+                try {
+                    db.setAutoCommit(true);
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
         } // update project
         else {
             try {
-                Project project = new Project(Long.parseLong(idStr), name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+                Project project = new Project(currentProjectId, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
                 db.updateProject(project);
-            } catch (SQLException ex) {
+
+                // when update successfully
+                currentProject = project;
+                
+                // reload project summary
+                loadProjectDetails();
+                // reload team list
+                loadTeamMember();
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1043,7 +1132,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     private void pjd_btTeamCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamCancelActionPerformed
         if (pjd_lblProjectId.getText().trim().compareTo("") != 0) {
             Project project = new Project(Long.parseLong(pjd_lblProjectId.getText()));
-            loadTeamMember(project);
+            loadTeamMember();
         }
 
 
@@ -1112,20 +1201,24 @@ public class ProjectDetails extends javax.swing.JFrame {
                 db.commitUpdate();
                 //reload team member
                 Project project = new Project(projectId);
-                loadTeamMember(project);
-            } catch (SQLException ex) {
+                loadTeamMember();
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: team update error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                } catch (SQLException ex1) {
+                }
+                catch (SQLException ex1) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            } finally {
+            }
+            finally {
                 try {
                     db.setAutoCommit(true);
-                } catch (SQLException ex) {
+                }
+                catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1137,7 +1230,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_btGoBackToPjListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btGoBackToPjListActionPerformed
         parentDlg.setVisible(true);
-        this.dispose();        
+        this.dispose();
     }//GEN-LAST:event_pjd_btGoBackToPjListActionPerformed
 
     private void tsk_btCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btCancelActionPerformed
@@ -1163,7 +1256,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (tsk_tfStartDatePlanned.getText().trim().compareTo("") != 0) {
             try {
                 startDatePlanned = sdf.parse(tsk_tfStartDatePlanned.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1173,7 +1267,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (tsk_tfEndDatePlanned.getText().trim().compareTo("") != 0) {
             try {
                 endDatePlanned = sdf.parse(tsk_tfEndDatePlanned.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Planned End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1183,7 +1278,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (tsk_tfStartDateActual.getText().trim().compareTo("") != 0) {
             try {
                 startDateActual = sdf.parse(tsk_tfStartDateActual.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1193,7 +1289,8 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (tsk_tfEndDateActual.getText().trim().compareTo("") != 0) {
             try {
                 endDateActual = sdf.parse(tsk_tfEndDateActual.getText());
-            } catch (ParseException ex) {
+            }
+            catch (ParseException ex) {
                 // Show message box to the user
                 JOptionPane.showMessageDialog(this, "Error: Actual End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1202,7 +1299,8 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (inChargePersonStr.compareTo(PLEASE_CHOOSE) != 0) {
             inChargePerson = Long.parseLong(inChargePersonStr.substring(0, inChargePersonStr.indexOf(" ")));
-        } else {
+        }
+        else {
             inChargePerson = 0;
         }
 
@@ -1211,11 +1309,12 @@ public class ProjectDetails extends javax.swing.JFrame {
             try {
                 Task task = new Task(0, Long.parseLong(projectIdStr), taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
-                
+
                 Project project = new Project(Long.parseLong(projectIdStr));
-                loadTaskList(project);
+                loadTaskList();
                 dlgTaskEditor.setVisible(false);
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1224,11 +1323,12 @@ public class ProjectDetails extends javax.swing.JFrame {
             try {
                 Task task = new Task(Long.parseLong(taskIdStr), Long.parseLong(projectIdStr), taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
-                
+
                 Project project = new Project(Long.parseLong(projectIdStr));
-                loadTaskList(project);
+                loadTaskList();
                 dlgTaskEditor.setVisible(false);
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1243,17 +1343,19 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_btAddTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btAddTaskActionPerformed
 
-        String projectIdStr = pjd_lblProjectId.getText();
-
-        if (projectIdStr.trim().compareTo("") == 0) {
+        if (currentProjectId == 0) {
             JOptionPane.showMessageDialog(this,
                     "Error: Please create a project before creating any task.",
                     "No Project",
                     JOptionPane.ERROR_MESSAGE);
             return;
-        } else {
-            tsk_lblProjectId.setText(projectIdStr);
-            tsk_lblProjectName.setText(pjd_tfName.getText());
+        }
+        else {
+            // initialize current task id
+            currentTaskId = 0;
+
+            tsk_lblProjectId.setText(currentProjectId + "");
+            tsk_lblProjectName.setText(currentProject.getName());
             tsk_lblTaskId.setText("");
             tsk_tfTaskName.setText("");
             tsk_taTaskDescription.setText("");
@@ -1266,7 +1368,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             try {
                 // initial value list for in-charege-person combo box
                 // get all team members
-                ArrayList<Team> team = db.getAllTeamMembers(Long.parseLong(projectIdStr));
+                ArrayList<Team> team = db.getAllTeamMembers(currentProjectId);
 
                 DefaultComboBoxModel modelInCharePerson = (DefaultComboBoxModel) tsk_cbInChargePerson.getModel();
                 modelInCharePerson.removeAllElements();
@@ -1276,7 +1378,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                     modelInCharePerson.addElement(member.getIdName());
                 }
 
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -1284,17 +1387,15 @@ public class ProjectDetails extends javax.swing.JFrame {
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
             dlgTaskEditor.pack();
-            
-            //dlgTaskEditor.setLocation(100, 200);
             dlgTaskEditor.setLocationRelativeTo(this);
-            dlgTaskEditor.setVisible(false);
+            dlgTaskEditor.setVisible(true);
         }
 
     }//GEN-LAST:event_pjd_btAddTaskActionPerformed
 
     private void pjd_btUpdateTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btUpdateTaskActionPerformed
-        String projectIdStr = pjd_lblProjectId.getText();
 
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
@@ -1302,46 +1403,55 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            } else {
+            }
+            else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for editing.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else {
+        }
+        else {
 
-            tsk_lblProjectId.setText(projectIdStr);
-            tsk_lblProjectName.setText(pjd_tfName.getText());
+            tsk_lblProjectId.setText(currentProjectId + "");
 
-            String taskIdStr = (String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0);
-            tsk_lblTaskId.setText(taskIdStr);
-            // get task details from Database
+            tsk_lblProjectName.setText(currentProject.getName());
+
+            // initilize current task id
+            currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+            tsk_lblTaskId.setText(currentTaskId + "");
+
             try {
-                Task task = db.getTaskById(Long.parseLong(taskIdStr));
+                // get task details from Database
+                Task task = db.getTaskById(currentTaskId);
 
                 tsk_tfTaskName.setText(task.getName());
                 tsk_taTaskDescription.setText(task.getDescription());
                 if (task.getStartDatePlanned() != null) {
                     tsk_tfStartDatePlanned.setText(sdf.format(task.getStartDatePlanned()));
-                } else {
+                }
+                else {
                     tsk_tfStartDatePlanned.setText("");
                 }
 
                 if (task.getEndDatePlanned() != null) {
                     tsk_tfEndDatePlanned.setText(sdf.format(task.getEndDatePlanned()));
-                } else {
+                }
+                else {
                     tsk_tfEndDatePlanned.setText("");
                 }
 
                 if (task.getStartDateActual() != null) {
                     tsk_tfStartDateActual.setText(sdf.format(task.getStartDateActual()));
-                } else {
+                }
+                else {
                     tsk_tfStartDateActual.setText("");
                 }
 
                 if (task.getEndDateActual() != null) {
                     tsk_tfEndDateActual.setText(sdf.format(task.getEndDateActual()));
-                } else {
+                }
+                else {
                     tsk_tfEndDateActual.setText("");
                 }
 
@@ -1349,7 +1459,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 // initial value list for in-charege-person combo box
                 // get all team members
-                ArrayList<Team> team = db.getAllTeamMembers(Long.parseLong(projectIdStr));
+                ArrayList<Team> team = db.getAllTeamMembers(currentProjectId);
 
                 DefaultComboBoxModel modelInCharePerson = (DefaultComboBoxModel) tsk_cbInChargePerson.getModel();
                 modelInCharePerson.removeAllElements();
@@ -1362,7 +1472,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                     }
                 }
 
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -1374,32 +1485,34 @@ public class ProjectDetails extends javax.swing.JFrame {
             dlgTaskEditor.pack();
             dlgTaskEditor.setLocationRelativeTo(this);
             dlgTaskEditor.setVisible(true);
-            
+
         }
 
 
     }//GEN-LAST:event_pjd_btUpdateTaskActionPerformed
 
     private void pjd_btDeleteTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDeleteTaskActionPerformed
-        
+
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(this,
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            } else {
+            }
+            else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for deleting.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        } else {
-            String taskIdStr = (String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0);
-   
+        }
+        else {
+            currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+
             Object[] options = {"Cancel", "Delete"};
             int decision = JOptionPane.showOptionDialog(this,
-                    "Are you sure you want to delete the task: ID# " + taskIdStr,
+                    "Are you sure you want to delete the task: ID# " + currentTaskId,
                     "Confirm delete",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE,
@@ -1410,9 +1523,8 @@ public class ProjectDetails extends javax.swing.JFrame {
             if (decision == 1) {
                 // change delete flag status to true
                 try {
-                    db.changeDeleteFlagStatus(Long.parseLong(taskIdStr), true);
-                    Project project = new Project(Long.parseLong(pjd_lblProjectId.getText()));
-                    loadTaskList(project);
+                    db.changeDeleteFlagStatus(currentTaskId, true);
+                    loadTaskList();
                 }
                 catch (SQLException ex) {
                     ex.printStackTrace();
@@ -1428,12 +1540,12 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_tbTaskListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_tbTaskListMouseReleased
         if (evt.isPopupTrigger()) {
-            
+
             int row = pjd_tbTaskList.rowAtPoint(evt.getPoint());
             pjd_tbTaskList.setRowSelectionInterval(row, row);
-            
+
             popMenuTaskEdit.show(evt.getComponent(), evt.getX(), evt.getY());
-      
+
         }
     }//GEN-LAST:event_pjd_tbTaskListMouseReleased
 
@@ -1539,12 +1651,5 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JTextField tsk_tfStartDatePlanned;
     private javax.swing.JTextField tsk_tfTaskName;
     // End of variables declaration//GEN-END:variables
-// Jerry use this area
-  JDialog parentDlg = null; 
-  public ProjectDetails(JDialog parentDlg,Project project) {
-      this(project);
-      this.parentDlg=parentDlg;      
-  }
-  
-  // Jerry use this area
+
 }
