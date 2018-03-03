@@ -824,7 +824,7 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_mainDlg_tbRemenderTaskMouseClicked
     private void showProjectEditDlg() {
         int rowindex = mainDlg_tbProjects.getSelectedRow();
-        if (rowindex != -1) {
+        if (rowindex != -1) {            
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
             Project p = null;
             try {
