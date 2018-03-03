@@ -1476,7 +1476,7 @@
                   </Table>
                 </Property>
                 <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="&#x9ed8;&#x8ba4;&#x5149;&#x6807;"/>
+                  <Color id="Default Cursor"/>
                 </Property>
               </Properties>
               <Events>

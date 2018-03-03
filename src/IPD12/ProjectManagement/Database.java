@@ -122,6 +122,33 @@ public class Database {
         return list;
     }
 
+    public Project getProjectById(long projectId) throws SQLException {
+        String sql = "SELECT * FROM projects WHERE id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date startDatePlanned = result.getDate("startDatePlanned");
+                Date endDatePlanned = result.getDate("endDatePlanned");
+                Date startDateActual = result.getDate("startDateActual");
+                Date endDateActual = result.getDate("endDateActual");
+                long projectManager = result.getLong("projectManager");
+                boolean isCompleted = result.getBoolean("isCompleted");
+                
+                Project project = new Project(id, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+                return project;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    
     public long addProject(Project project) throws SQLException {
         long id = 0;
         
