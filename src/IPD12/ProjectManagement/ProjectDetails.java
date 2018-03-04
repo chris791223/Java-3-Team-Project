@@ -18,6 +18,7 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import jdk.nashorn.internal.objects.Global;
 
 /**
  *
@@ -26,11 +27,13 @@ import javax.swing.table.DefaultTableModel;
 public class ProjectDetails extends javax.swing.JFrame {
 
     Database db;
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     DefaultListModel<Team> modelResourceList = new DefaultListModel<>();
     DefaultListModel<Team> modelMemberList = new DefaultListModel<>();
     private final String PLEASE_CHOOSE = "Please choose ...";
     private final String PROJECT_EDITOR = "Project Editor:　";
+    private final String CREATE_NEW_PROJECT = "Create New Project: ";
+    private final String TASK_EDITOR = "Task Editor:　";
+    private final String CREATE_NEW_TASK = "Create New Task: ";
     JDialog parentDlg = null;
     long currentProjectId;
     Project currentProject;
@@ -84,18 +87,14 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     public void loadProjectInfo() {
         // load project details
-        loadProjectDetails();
+        loadProjectSummary();
         // load task list
         loadTaskList();
         // load team member
         loadTeamMember();
     }
 
-    public void loadProjectDetails() {
-
-        // initialization
-        DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
-        modelPM.removeAllElements();
+    public void loadProjectSummary() {
 
         // load project information 
         if (currentProjectId != 0) {
@@ -104,88 +103,32 @@ public class ProjectDetails extends javax.swing.JFrame {
             pjd_lblProjectId.setText(currentProject.getId() + "");
             pjd_tfName.setText(currentProject.getName());
             pjd_taDescription.setText(currentProject.getDescription());
-            if (currentProject.getStartDatePlanned() != null) {
-                pjd_tfStartDatePlanned.setText(sdf.format(currentProject.getStartDatePlanned()));
-            }
-            else {
-                pjd_tfStartDatePlanned.setText("");
-            }
-            if (currentProject.getEndDatePlanned() != null) {
-                pjd_tfEndDatePlanned.setText(sdf.format(currentProject.getEndDatePlanned()));
-            }
-            else {
-                pjd_tfEndDatePlanned.setText("");
-            }
-            if (currentProject.getStartDateActual() != null) {
-                pjd_tfStartDateActual.setText(sdf.format(currentProject.getStartDateActual()));
-            }
-            else {
-                pjd_tfStartDateActual.setText("");
-            }
-            if (currentProject.getEndDateActual() != null) {
-                pjd_tfEndDateActual.setText(sdf.format(currentProject.getEndDateActual()));
-            }
-            else {
-                pjd_tfEndDateActual.setText("");
-            }
+            
+            //setDate();
+            pjd_tfStartDatePlanned.setText(GlobalProcess.formatOutputDate(currentProject.getStartDatePlanned()));
+            pjd_tfEndDatePlanned.setText(GlobalProcess.formatOutputDate(currentProject.getEndDatePlanned()));
+            pjd_tfStartDateActual.setText(GlobalProcess.formatOutputDate(currentProject.getStartDateActual()));
+            pjd_tfEndDateActual.setText(GlobalProcess.formatOutputDate(currentProject.getEndDateActual()));
 
             pjd_chkbIsCompleted.setSelected(currentProject.getIsCompleted());
-            try {
-                // initial value list for project manager combo box
-                // get all team members
-                ArrayList<Team> teamList = db.getAllTeamMembers(currentProject.getId());
-                modelPM.removeAllElements();
-                modelPM.addElement(PLEASE_CHOOSE);
 
-                for (Team tm : teamList) {
-                    modelPM.addElement(tm.getIdName());
-                    if (tm.getId() == currentProject.getProjectManager()) {
-                        modelPM.setSelectedItem(tm.getIdName());
-                    }
-                }
-
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Error fetching data: " + ex.getMessage(),
-                        "Database error",
-                        JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
+            // initial value list for project manager combo box
+            loadAllTeamMemberForComboBox();
         }
         // add new project
         else {
+            pjd_lblTitle.setText(CREATE_NEW_PROJECT);
             pjd_lblProjectId.setText("");
             pjd_tfName.setText("");
             pjd_taDescription.setText("");
-            pjd_tfStartDatePlanned.setText("");
-            pjd_tfEndDatePlanned.setText("");
-            pjd_tfStartDateActual.setText("");
-            pjd_tfEndDateActual.setText("");
+            pjd_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            pjd_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            pjd_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+            pjd_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
             pjd_chkbIsCompleted.setSelected(false);
 
-            try {
-                // initial value list for project manager combo box
-                // get all availabe resourses
-                ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
-                modelPM.removeAllElements();
-                modelPM.addElement(PLEASE_CHOOSE);
-
-                for (Team rsc : resourceList) {
-                    modelPM.addElement(rsc.getIdName());
-                }
-
-            }
-            catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Error fetching data: " + ex.getMessage(),
-                        "Database error",
-                        JOptionPane.ERROR_MESSAGE);
-                this.dispose();
-            }
+            // initial value list for project manager combo box
+            loadAvailabeResourceForComboBox();
 
         }
     }
@@ -207,25 +150,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                     String id = task.getId() + "";
                     String name = task.getName();
                     String description = task.getDescription();
-                    String startDatePlanned = "";
-                    String endDatePlanned = "";;
-                    String startDateActual = "";;
-                    String endDateActual = "";;
+                    String startDatePlanned = GlobalProcess.formatOutputDate2(task.getStartDatePlanned());
+                    String endDatePlanned = GlobalProcess.formatOutputDate2(task.getEndDatePlanned());
+                    String startDateActual = GlobalProcess.formatOutputDate2(task.getStartDateActual());
+                    String endDateActual = GlobalProcess.formatOutputDate2(task.getEndDateActual());
                     String isCompleted;
                     String inCharegePerson = "";
-
-                    if (task.getStartDatePlanned() != null) {
-                        startDatePlanned = sdf.format(task.getStartDatePlanned());
-                    }
-                    if (task.getEndDatePlanned() != null) {
-                        endDatePlanned = sdf.format(task.getEndDatePlanned());
-                    }
-                    if (task.getStartDateActual() != null) {
-                        startDateActual = sdf.format(task.getStartDateActual());
-                    }
-                    if (task.getEndDateActual() != null) {
-                        endDateActual = sdf.format(task.getEndDateActual());
-                    }
 
                     isCompleted = task.getIsCompleted() ? "YES" : "NO";
 
@@ -281,6 +211,60 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     }
 
+    private void loadAvailabeResourceForComboBox() {
+        // initialization
+        DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+        modelPM.removeAllElements();
+        
+        try {
+            // get all availabe resourses
+            ArrayList<Team> resourceList = db.getAllTeamAvailabeResouces();
+            modelPM.removeAllElements();
+            modelPM.addElement(PLEASE_CHOOSE);
+
+            for (Team rsc : resourceList) {
+                modelPM.addElement(rsc.getIdName());
+            }
+
+        }
+        catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error fetching data: " + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+            this.dispose();
+        }
+    }
+
+    private void loadAllTeamMemberForComboBox() {
+        // initialization
+        DefaultComboBoxModel modelPM = (DefaultComboBoxModel) pjd_cbProjectManager.getModel();
+        modelPM.removeAllElements();
+
+        try {
+            // get all team members
+            ArrayList<Team> teamList = db.getAllTeamMembers(currentProject.getId());
+            modelPM.removeAllElements();
+            modelPM.addElement(PLEASE_CHOOSE);
+
+            for (Team tm : teamList) {
+                modelPM.addElement(tm.getIdName());
+                if (tm.getId() == currentProject.getProjectManager()) {
+                    modelPM.setSelectedItem(tm.getIdName());
+                }
+            }
+
+        }
+        catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error fetching data: " + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -291,7 +275,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     private void initComponents() {
 
         dlgTaskEditor = new javax.swing.JDialog();
-        pjd_lblTitle1 = new javax.swing.JLabel();
+        tsk_lblTitle = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jLabel25 = new javax.swing.JLabel();
         tsk_cbInChargePerson = new javax.swing.JComboBox<>();
@@ -310,10 +294,10 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel31 = new javax.swing.JLabel();
         tsk_tfEndDateActual = new javax.swing.JTextField();
         tsk_btCancel = new javax.swing.JButton();
-        jScrollPane6 = new javax.swing.JScrollPane();
-        tsk_taTaskDescription = new javax.swing.JTextArea();
         jLabel32 = new javax.swing.JLabel();
         tsk_lblTaskId = new javax.swing.JLabel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        tsk_taTaskDescription = new javax.swing.JTextArea();
         jLabel33 = new javax.swing.JLabel();
         tsk_lblProjectId = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
@@ -368,14 +352,22 @@ public class ProjectDetails extends javax.swing.JFrame {
         dlgTaskEditor.setTitle("Task Editor");
         dlgTaskEditor.setModal(true);
 
-        pjd_lblTitle1.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
-        pjd_lblTitle1.setText("Task Editor: Task 1 - Current Business Analysis");
+        tsk_lblTitle.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
+        tsk_lblTitle.setText("Task Editor: Task 1 - Current Business Analysis");
 
         jPanel4.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel25.setText("In Charge Person:");
 
         tsk_tfStartDateActual.setText("10-20-2019");
+        tsk_tfStartDateActual.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                tsk_tfStartDateActualFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tsk_tfStartDateActualFocusLost(evt);
+            }
+        });
 
         tsk_tfTaskName.setText("Task 1 - Current Business Analysis");
         tsk_tfTaskName.addActionListener(new java.awt.event.ActionListener() {
@@ -389,6 +381,14 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel27.setText("Is Completed:");
 
         tsk_tfEndDatePlanned.setText("10-20-2019");
+        tsk_tfEndDatePlanned.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                tsk_tfEndDatePlannedFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tsk_tfEndDatePlannedFocusLost(evt);
+            }
+        });
 
         jLabel28.setText("Planned Start Date:");
 
@@ -399,6 +399,14 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel18.setText("Planned End Date:");
 
         tsk_tfStartDatePlanned.setText("10-20-2019");
+        tsk_tfStartDatePlanned.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                tsk_tfStartDatePlannedFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tsk_tfStartDatePlannedFocusLost(evt);
+            }
+        });
 
         tsk_btSave.setText("Save");
         tsk_btSave.addActionListener(new java.awt.event.ActionListener() {
@@ -412,6 +420,14 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel31.setText("Actual Start Date:");
 
         tsk_tfEndDateActual.setText("10-20-2019");
+        tsk_tfEndDateActual.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                tsk_tfEndDateActualFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tsk_tfEndDateActualFocusLost(evt);
+            }
+        });
 
         tsk_btCancel.setText("Cancel");
         tsk_btCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -420,15 +436,15 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
         });
 
-        tsk_taTaskDescription.setColumns(20);
-        tsk_taTaskDescription.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
-        tsk_taTaskDescription.setRows(5);
-        tsk_taTaskDescription.setText("task description......");
-        jScrollPane6.setViewportView(tsk_taTaskDescription);
-
         jLabel32.setText("Actual End Date:");
 
         tsk_lblTaskId.setText(":::");
+
+        tsk_taTaskDescription.setColumns(20);
+        tsk_taTaskDescription.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        tsk_taTaskDescription.setRows(5);
+        tsk_taTaskDescription.setText("task description");
+        jScrollPane5.setViewportView(tsk_taTaskDescription);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -447,11 +463,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                             .addComponent(jLabel28)
                             .addComponent(jLabel26))
                         .addGap(18, 18, 18)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tsk_tfStartDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(tsk_tfStartDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(tsk_lblTaskId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(82, 82, 82)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(tsk_tfStartDatePlanned)
+                            .addComponent(tsk_tfStartDateActual)
+                            .addComponent(tsk_lblTaskId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(72, 72, 72)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel32)
                             .addComponent(jLabel27)
@@ -459,16 +475,17 @@ public class ProjectDetails extends javax.swing.JFrame {
                             .addComponent(jLabel29))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tsk_chkbIsCompleted)
-                            .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(tsk_tfTaskName, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel30)))))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                                .addGap(27, 27, 27)
+                                .addComponent(jLabel30))
+                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.Alignment.LEADING)))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(tsk_btCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(tsk_btSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -478,8 +495,8 @@ public class ProjectDetails extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane6)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
@@ -513,9 +530,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addComponent(tsk_chkbIsCompleted)))
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(tsk_btSave)))
-                        .addGap(8, 8, 8)))
-                .addGap(30, 30, 30))
+                                .addComponent(tsk_btSave)))))
+                .addGap(38, 38, 38))
         );
 
         jLabel33.setText("Project ID:");
@@ -533,24 +549,27 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(dlgTaskEditorLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pjd_lblTitle1, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(dlgTaskEditorLayout.createSequentialGroup()
-                        .addGap(8, 8, 8)
-                        .addComponent(jLabel33)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(tsk_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(132, 132, 132)
-                        .addComponent(jLabel34)
-                        .addGap(26, 26, 26)
-                        .addComponent(tsk_lblProjectName)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tsk_lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(dlgTaskEditorLayout.createSequentialGroup()
+                                .addGap(8, 8, 8)
+                                .addComponent(jLabel33)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(tsk_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(132, 132, 132)
+                                .addComponent(jLabel34)
+                                .addGap(26, 26, 26)
+                                .addComponent(tsk_lblProjectName)))
+                        .addGap(0, 544, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         dlgTaskEditorLayout.setVerticalGroup(
             dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(dlgTaskEditorLayout.createSequentialGroup()
                 .addGap(19, 19, 19)
-                .addComponent(pjd_lblTitle1)
+                .addComponent(tsk_lblTitle)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
                 .addGroup(dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel33)
@@ -593,7 +612,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel9.setText("Description:");
 
         pjd_taDescription.setColumns(20);
-        pjd_taDescription.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+        pjd_taDescription.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
         pjd_taDescription.setRows(5);
         pjd_taDescription.setText("Project description......");
         jScrollPane4.setViewportView(pjd_taDescription);
@@ -614,12 +633,44 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel13.setText("Actual End Date:");
 
         pjd_tfStartDateActual.setText("10-20-2019");
+        pjd_tfStartDateActual.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                pjd_tfStartDateActualFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                pjd_tfStartDateActualFocusLost(evt);
+            }
+        });
 
         pjd_tfEndDatePlanned.setText("10-20-2019");
+        pjd_tfEndDatePlanned.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                pjd_tfEndDatePlannedFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                pjd_tfEndDatePlannedFocusLost(evt);
+            }
+        });
 
         pjd_tfStartDatePlanned.setText("10-20-2019");
+        pjd_tfStartDatePlanned.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                pjd_tfStartDatePlannedFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                pjd_tfStartDatePlannedFocusLost(evt);
+            }
+        });
 
         pjd_tfEndDateActual.setText("10-20-2019");
+        pjd_tfEndDateActual.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                pjd_tfEndDateActualFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                pjd_tfEndDateActualFocusLost(evt);
+            }
+        });
 
         jLabel12.setText("Project Manager:");
 
@@ -662,10 +713,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                             .addComponent(jLabel7))
                         .addGap(27, 27, 27)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(pjd_lblProjectId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_tfStartDateActual, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
-                            .addComponent(pjd_tfStartDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE))
-                        .addGap(73, 73, 73)
+                            .addComponent(pjd_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_tfStartDatePlanned)
+                            .addComponent(pjd_tfStartDateActual))
+                        .addGap(63, 63, 63)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel13)
                             .addComponent(jLabel14)
@@ -678,14 +729,14 @@ public class ProjectDetails extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 63, Short.MAX_VALUE)
                                 .addComponent(jLabel9))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(pjd_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(pjd_chkbIsCompleted)
-                                    .addComponent(pjd_tfEndDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(pjd_tfEndDatePlanned)
+                                    .addComponent(pjd_tfEndDateActual))
                                 .addGap(0, 0, Short.MAX_VALUE)))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 77, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pjd_btDetailCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(pjd_btDetailSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -694,12 +745,10 @@ public class ProjectDetails extends javax.swing.JFrame {
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jLabel6)
-                        .addGap(36, 36, 36)
-                        .addComponent(jScrollPane4))
+                        .addComponent(jLabel6))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -736,9 +785,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addComponent(pjd_chkbIsCompleted)))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(pjd_btDetailSave)))
-                        .addGap(8, 8, 8)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(pjd_btDetailSave))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(62, 62, 62)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(21, Short.MAX_VALUE))
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -798,7 +849,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
@@ -953,7 +1004,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(pjd_lblTitle)
                     .addComponent(pjd_btGoBackToPjList))
@@ -975,8 +1026,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_tfNameActionPerformed
 
     private void pjd_btDetailCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDetailCancelActionPerformed
-
-        //this.setVisible(false);
+        // reload project summary
+        loadProjectSummary();
     }//GEN-LAST:event_pjd_btDetailCancelActionPerformed
 
     private void pjd_btDetailSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDetailSaveActionPerformed
@@ -987,6 +1038,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         boolean isCompleted = pjd_chkbIsCompleted.isSelected();
         String projectManagerStr = (String) pjd_cbProjectManager.getSelectedItem();
         long projectManager;
+        String tempDate;
 
         if (name.trim().compareTo("") == 0) {
             // Show message box to the user
@@ -994,50 +1046,46 @@ public class ProjectDetails extends javax.swing.JFrame {
             return;
         }
 
-        if (pjd_tfStartDatePlanned.getText().trim().compareTo("") != 0) {
-            try {
-                startDatePlanned = sdf.parse(pjd_tfStartDatePlanned.getText());
-            }
-            catch (ParseException ex) {
+        tempDate = pjd_tfStartDatePlanned.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
+            if (startDatePlanned == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        
+        tempDate = pjd_tfEndDatePlanned.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            endDatePlanned = GlobalProcess.checkDateFormat(tempDate);
+            if (endDatePlanned == null) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Planned end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        
+        tempDate = pjd_tfStartDateActual.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            startDateActual = GlobalProcess.checkDateFormat(tempDate);
+            if (startDateActual == null) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error ((Format \"YYYY-MM-DD\")." , "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
 
-        if (pjd_tfEndDatePlanned.getText().trim().compareTo("") != 0) {
-            try {
-                endDatePlanned = sdf.parse(pjd_tfEndDatePlanned.getText());
-            }
-            catch (ParseException ex) {
+        tempDate = pjd_tfEndDateActual.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            endDateActual = GlobalProcess.checkDateFormat(tempDate);
+            if (endDateActual == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: Actual end Date format error (Format \"YYYY-MM-DD\")." , "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
-
-        if (pjd_tfStartDateActual.getText().trim().compareTo("") != 0) {
-            try {
-                startDateActual = sdf.parse(pjd_tfStartDateActual.getText());
-            }
-            catch (ParseException ex) {
-                // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
-
-        if (pjd_tfEndDateActual.getText().trim().compareTo("") != 0) {
-            try {
-                endDateActual = sdf.parse(pjd_tfEndDateActual.getText());
-            }
-            catch (ParseException ex) {
-                // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
-
+        
         if (projectManagerStr.compareTo(PLEASE_CHOOSE) != 0) {
             projectManager = Long.parseLong(projectManagerStr.substring(0, projectManagerStr.indexOf(" ")));
         }
@@ -1068,7 +1116,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 currentProject.setId(currentProjectId);
 
                 // reload project summary
-                loadProjectDetails();
+                loadProjectSummary();
                 // reload team list
                 loadTeamMember();
 
@@ -1102,9 +1150,9 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 // when update successfully
                 currentProject = project;
-                
+
                 // reload project summary
-                loadProjectDetails();
+                loadProjectSummary();
                 // reload team list
                 loadTeamMember();
             }
@@ -1130,8 +1178,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
 
     private void pjd_btTeamCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamCancelActionPerformed
-        if (pjd_lblProjectId.getText().trim().compareTo("") != 0) {
-            Project project = new Project(Long.parseLong(pjd_lblProjectId.getText()));
+        if (currentProjectId != 0) {
             loadTeamMember();
         }
 
@@ -1140,10 +1187,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_btTeamSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamSaveActionPerformed
 
-        String projectIdStr = pjd_lblProjectId.getText();
-
-        if (projectIdStr.trim().compareTo("") != 0) {
-            long projectId = Long.parseLong(projectIdStr);
+        if (currentProjectId != 0) {
 
             try {
                 db.setAutoCommit(false);
@@ -1152,7 +1196,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 int resourceSize = modelResourceList.getSize();
                 for (int i = 0; i < resourceSize; i++) {
                     Team resource = modelResourceList.getElementAt(i);
-                    resource.setProjectId(projectId);
+                    resource.setProjectId(currentProjectId);
 
                     // check if left from a team 
                     Team memberWithStatus = db.checkIfMemberInTeam(resource);
@@ -1172,14 +1216,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 for (int i = 0; i < teamSize; i++) {
                     Team member = modelMemberList.getElementAt(i);
-                    member.setProjectId(projectId);
+                    member.setProjectId(currentProjectId);
 
                     // check if new member who joins the team 
                     Team memberWithStatus = db.checkIfMemberInTeam(member);
 
                     // new member
                     if (memberWithStatus == null) {
-                        System.out.println(member.getId());
                         member.setIsLeft(false);
                         User user = new User(member.getId(), false);
                         // add new member
@@ -1199,9 +1242,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
 
                 db.commitUpdate();
-                //reload team member
-                Project project = new Project(projectId);
+                // reload team member
+                // Project project = new Project(projectId);
                 loadTeamMember();
+
+                // reload team member for pm or in-charge-person in project summary 
+                loadAllTeamMemberForComboBox();
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1238,14 +1284,13 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_tsk_btCancelActionPerformed
 
     private void tsk_btSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btSaveActionPerformed
-        String taskIdStr = tsk_lblTaskId.getText();
-        String projectIdStr = tsk_lblProjectId.getText();
         String taskName = tsk_tfTaskName.getText();
         String description = tsk_taTaskDescription.getText();
         Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
         boolean isCompleted = tsk_chkbIsCompleted.isSelected();
-        String inChargePersonStr = (String) pjd_cbProjectManager.getSelectedItem();
+        String inChargePersonStr = (String) tsk_cbInChargePerson.getSelectedItem();
         long inChargePerson;
+        String tempDate;
 
         if (taskName.trim().compareTo("") == 0) {
             // Show message box to the user
@@ -1253,46 +1298,43 @@ public class ProjectDetails extends javax.swing.JFrame {
             return;
         }
 
-        if (tsk_tfStartDatePlanned.getText().trim().compareTo("") != 0) {
-            try {
-                startDatePlanned = sdf.parse(tsk_tfStartDatePlanned.getText());
-            }
-            catch (ParseException ex) {
+        tempDate = tsk_tfStartDatePlanned.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
+            if (startDatePlanned == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        
+        tempDate = tsk_tfEndDatePlanned.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            endDatePlanned = GlobalProcess.checkDateFormat(tempDate);
+            if (endDatePlanned == null) {
+                // Show message box to the user
+                JOptionPane.showMessageDialog(this, "Error: Planned end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
 
-        if (tsk_tfEndDatePlanned.getText().trim().compareTo("") != 0) {
-            try {
-                endDatePlanned = sdf.parse(tsk_tfEndDatePlanned.getText());
-            }
-            catch (ParseException ex) {
+
+        tempDate = tsk_tfStartDateActual.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            startDateActual = GlobalProcess.checkDateFormat(tempDate);
+            if (startDateActual == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: Actual start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
-
-        if (tsk_tfStartDateActual.getText().trim().compareTo("") != 0) {
-            try {
-                startDateActual = sdf.parse(tsk_tfStartDateActual.getText());
-            }
-            catch (ParseException ex) {
+        
+        tempDate = tsk_tfEndDateActual.getText();
+        if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
+            endDateActual = GlobalProcess.checkDateFormat(tempDate);
+            if (endDateActual == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual Start Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
-
-        if (tsk_tfEndDateActual.getText().trim().compareTo("") != 0) {
-            try {
-                endDateActual = sdf.parse(tsk_tfEndDateActual.getText());
-            }
-            catch (ParseException ex) {
-                // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual End Date format error (Format \"YYYY-MM-DD \"): \n" + ex.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: Actual end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -1305,12 +1347,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         }
 
         // create a new task
-        if (taskIdStr.trim().compareTo("") == 0) {
+        if (currentTaskId == 0) {
             try {
-                Task task = new Task(0, Long.parseLong(projectIdStr), taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                Task task = new Task(0, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
 
-                Project project = new Project(Long.parseLong(projectIdStr));
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
             }
@@ -1321,10 +1362,9 @@ public class ProjectDetails extends javax.swing.JFrame {
         } // update old task
         else {
             try {
-                Task task = new Task(Long.parseLong(taskIdStr), Long.parseLong(projectIdStr), taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                Task task = new Task(currentTaskId, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
 
-                Project project = new Project(Long.parseLong(projectIdStr));
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
             }
@@ -1353,16 +1393,17 @@ public class ProjectDetails extends javax.swing.JFrame {
         else {
             // initialize current task id
             currentTaskId = 0;
-
+            
+            tsk_lblTitle.setText(CREATE_NEW_TASK);
             tsk_lblProjectId.setText(currentProjectId + "");
             tsk_lblProjectName.setText(currentProject.getName());
             tsk_lblTaskId.setText("");
             tsk_tfTaskName.setText("");
             tsk_taTaskDescription.setText("");
-            tsk_tfStartDatePlanned.setText("");
-            tsk_tfEndDatePlanned.setText("");
-            tsk_tfStartDateActual.setText("");
-            tsk_tfEndDateActual.setText("");
+            tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
             tsk_chkbIsCompleted.setSelected(false);
 
             try {
@@ -1397,6 +1438,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_btUpdateTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btUpdateTaskActionPerformed
 
+        System.out.println("update " + pjd_tbTaskList.getSelectedRow());
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(this,
@@ -1424,36 +1466,15 @@ public class ProjectDetails extends javax.swing.JFrame {
             try {
                 // get task details from Database
                 Task task = db.getTaskById(currentTaskId);
-
+                
+                tsk_lblTitle.setText(TASK_EDITOR + task.getName());
                 tsk_tfTaskName.setText(task.getName());
                 tsk_taTaskDescription.setText(task.getDescription());
-                if (task.getStartDatePlanned() != null) {
-                    tsk_tfStartDatePlanned.setText(sdf.format(task.getStartDatePlanned()));
-                }
-                else {
-                    tsk_tfStartDatePlanned.setText("");
-                }
-
-                if (task.getEndDatePlanned() != null) {
-                    tsk_tfEndDatePlanned.setText(sdf.format(task.getEndDatePlanned()));
-                }
-                else {
-                    tsk_tfEndDatePlanned.setText("");
-                }
-
-                if (task.getStartDateActual() != null) {
-                    tsk_tfStartDateActual.setText(sdf.format(task.getStartDateActual()));
-                }
-                else {
-                    tsk_tfStartDateActual.setText("");
-                }
-
-                if (task.getEndDateActual() != null) {
-                    tsk_tfEndDateActual.setText(sdf.format(task.getEndDateActual()));
-                }
-                else {
-                    tsk_tfEndDateActual.setText("");
-                }
+                
+                tsk_tfStartDatePlanned.setText(GlobalProcess.formatOutputDate(task.getStartDatePlanned()));
+                tsk_tfEndDatePlanned.setText(GlobalProcess.formatOutputDate(task.getEndDatePlanned()));
+                tsk_tfStartDateActual.setText(GlobalProcess.formatOutputDate(task.getStartDateActual()));
+                tsk_tfEndDateActual.setText(GlobalProcess.formatOutputDate(task.getEndDateActual()));
 
                 tsk_chkbIsCompleted.setSelected(task.getIsCompleted());
 
@@ -1493,6 +1514,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_btDeleteTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btDeleteTaskActionPerformed
 
+        System.out.println("delete " + pjd_tbTaskList.getSelectedRow());
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(this,
@@ -1548,6 +1570,102 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         }
     }//GEN-LAST:event_pjd_tbTaskListMouseReleased
+
+    private void pjd_tfStartDatePlannedFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfStartDatePlannedFocusGained
+        if (pjd_tfStartDatePlanned.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            pjd_tfStartDatePlanned.setText("");
+        }
+    }//GEN-LAST:event_pjd_tfStartDatePlannedFocusGained
+
+    private void pjd_tfEndDatePlannedFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfEndDatePlannedFocusGained
+        if (pjd_tfEndDatePlanned.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            pjd_tfEndDatePlanned.setText("");
+        }
+    }//GEN-LAST:event_pjd_tfEndDatePlannedFocusGained
+
+    private void pjd_tfStartDateActualFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfStartDateActualFocusGained
+        if (pjd_tfStartDateActual.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            pjd_tfStartDateActual.setText("");
+        }
+    }//GEN-LAST:event_pjd_tfStartDateActualFocusGained
+
+    private void pjd_tfEndDateActualFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfEndDateActualFocusGained
+        if (pjd_tfEndDateActual.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            pjd_tfEndDateActual.setText("");
+        }
+    }//GEN-LAST:event_pjd_tfEndDateActualFocusGained
+
+    private void tsk_tfStartDatePlannedFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfStartDatePlannedFocusGained
+        if (tsk_tfStartDatePlanned.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            tsk_tfStartDatePlanned.setText("");
+        }
+    }//GEN-LAST:event_tsk_tfStartDatePlannedFocusGained
+
+    private void tsk_tfEndDatePlannedFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfEndDatePlannedFocusGained
+        if (tsk_tfEndDatePlanned.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            tsk_tfEndDatePlanned.setText("");
+        }
+    }//GEN-LAST:event_tsk_tfEndDatePlannedFocusGained
+
+    private void tsk_tfStartDateActualFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfStartDateActualFocusGained
+        if (tsk_tfStartDateActual.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            tsk_tfStartDateActual.setText("");
+        }
+    }//GEN-LAST:event_tsk_tfStartDateActualFocusGained
+
+    private void tsk_tfEndDateActualFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfEndDateActualFocusGained
+        if (tsk_tfEndDateActual.getText().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) == 0) {
+            tsk_tfEndDateActual.setText("");
+        }
+    }//GEN-LAST:event_tsk_tfEndDateActualFocusGained
+
+    private void tsk_tfStartDatePlannedFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfStartDatePlannedFocusLost
+        if (tsk_tfStartDatePlanned.getText().trim().compareTo("") == 0) {
+            tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_tsk_tfStartDatePlannedFocusLost
+
+    private void tsk_tfEndDatePlannedFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfEndDatePlannedFocusLost
+        if (tsk_tfEndDatePlanned.getText().trim().compareTo("") == 0) {
+            tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_tsk_tfEndDatePlannedFocusLost
+
+    private void tsk_tfStartDateActualFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfStartDateActualFocusLost
+        if (tsk_tfStartDateActual.getText().trim().compareTo("") == 0) {
+            tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_tsk_tfStartDateActualFocusLost
+
+    private void tsk_tfEndDateActualFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tsk_tfEndDateActualFocusLost
+        if (tsk_tfEndDateActual.getText().trim().compareTo("") == 0) {
+            tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_tsk_tfEndDateActualFocusLost
+
+    private void pjd_tfEndDatePlannedFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfEndDatePlannedFocusLost
+        if (pjd_tfEndDatePlanned.getText().trim().compareTo("") == 0) {
+            pjd_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_pjd_tfEndDatePlannedFocusLost
+
+    private void pjd_tfStartDateActualFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfStartDateActualFocusLost
+        if (pjd_tfStartDateActual.getText().trim().compareTo("") == 0) {
+            pjd_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_pjd_tfStartDateActualFocusLost
+
+    private void pjd_tfEndDateActualFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfEndDateActualFocusLost
+        if (pjd_tfEndDateActual.getText().trim().compareTo("") == 0) {
+            pjd_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_pjd_tfEndDateActualFocusLost
+
+    private void pjd_tfStartDatePlannedFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pjd_tfStartDatePlannedFocusLost
+        if (pjd_tfStartDatePlanned.getText().trim().compareTo("") == 0) {
+            pjd_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+        }
+    }//GEN-LAST:event_pjd_tfStartDatePlannedFocusLost
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
@@ -1609,7 +1727,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JButton pjd_btAddTask;
     private javax.swing.JButton pjd_btDeleteTask;
     private javax.swing.JButton pjd_btDetailCancel;
@@ -1624,7 +1742,6 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JCheckBox pjd_chkbIsCompleted;
     private javax.swing.JLabel pjd_lblProjectId;
     private javax.swing.JLabel pjd_lblTitle;
-    private javax.swing.JLabel pjd_lblTitle1;
     private javax.swing.JList<Team> pjd_lstAllResourse;
     private javax.swing.JList<Team> pjd_lstCurTeamMember;
     private javax.swing.JTextArea pjd_taDescription;
@@ -1644,6 +1761,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JLabel tsk_lblProjectId;
     private javax.swing.JLabel tsk_lblProjectName;
     private javax.swing.JLabel tsk_lblTaskId;
+    private javax.swing.JLabel tsk_lblTitle;
     private javax.swing.JTextArea tsk_taTaskDescription;
     private javax.swing.JTextField tsk_tfEndDateActual;
     private javax.swing.JTextField tsk_tfEndDatePlanned;

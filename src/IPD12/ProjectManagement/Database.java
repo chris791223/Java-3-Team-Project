@@ -158,33 +158,10 @@ public class Database {
             stmt.setString(1, project.getName());
             stmt.setString(2, project.getDescription());
 
-            if (project.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(project.getStartDatePlanned().getTime()));
-            }
-
-            if (project.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(project.getEndDatePlanned().getTime()));
-            }
-
-            if (project.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(project.getStartDateActual().getTime()));
-            }
-
-            if (project.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(project.getEndDateActual().getTime()));
-            }
+            stmt.setDate(3, GlobalProcess.formatSqlDate(project.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(project.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(project.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(project.getEndDateActual()));
 
             if (project.getProjectManager() == 0) {
                 stmt.setString(7, null);
@@ -216,34 +193,11 @@ public class Database {
             stmt.setString(1, project.getName());
             stmt.setString(2, project.getDescription());
 
-            if (project.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(project.getStartDatePlanned().getTime()));
-            }
-
-            if (project.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(project.getEndDatePlanned().getTime()));
-            }
-
-            if (project.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(project.getStartDateActual().getTime()));
-            }
-
-            if (project.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(project.getEndDateActual().getTime()));
-            }
-
+            stmt.setDate(3, GlobalProcess.formatSqlDate(project.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(project.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(project.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(project.getEndDateActual()));
+ 
             if (project.getProjectManager() == 0) {
                 stmt.setString(7, null);
             }
@@ -347,33 +301,10 @@ public class Database {
             stmt.setString(2, task.getName());
             stmt.setString(3, task.getDescription());
 
-            if (task.getStartDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(task.getStartDatePlanned().getTime()));
-            }
-
-            if (task.getEndDatePlanned() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(task.getEndDatePlanned().getTime()));
-            }
-
-            if (task.getStartDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(task.getStartDateActual().getTime()));
-            }
-
-            if (task.getEndDateActual() == null) {
-                stmt.setDate(7, null);
-            }
-            else {
-                stmt.setDate(7, new java.sql.Date(task.getEndDateActual().getTime()));
-            }
+            stmt.setDate(4, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getStartDateActual()));
+            stmt.setDate(7, GlobalProcess.formatSqlDate(task.getEndDateActual()));
 
             if (task.getPersonInCharge()== 0) {
                 stmt.setString(8, null);
@@ -398,33 +329,10 @@ public class Database {
             stmt.setString(1, task.getName());
             stmt.setString(2, task.getDescription());
 
-            if (task.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(task.getStartDatePlanned().getTime()));
-            }
-
-            if (task.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(task.getEndDatePlanned().getTime()));
-            }
-
-            if (task.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(task.getStartDateActual().getTime()));
-            }
-
-            if (task.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(task.getEndDateActual().getTime()));
-            }
+            stmt.setDate(3, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getEndDateActual()));
 
             if (task.getPersonInCharge()== 0) {
                 stmt.setString(7, null);
@@ -451,85 +359,7 @@ public class Database {
     }
     
     
-    /*
-    public void deleteTeambyProjectId(long id) throws SQLException {
-        String sql = "DELETE FROM teams WHERE projectId = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            stmt.executeUpdate();
-        }
-    }
-    */
-    /*
-    public Car getCarById(long id) throws SQLException{
-        String sql = "SELECT * FROM cars WHERE id = ?";
-        
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            ResultSet result = stmt.executeQuery();
-            if (result.next()) {
-                return new Car(result.getLong("id"), result.getString("makeModel"), result.getBigDecimal("engineSize"), Car.FuelType.valueOf(result.getString("fuelType")));
-            } else {
-                return null;
-            }
-        }
-    }
    
-    public ArrayList<Car> getAllCars() throws SQLException {
-        String sql = "SELECT * FROM cars";
-        ArrayList<Car> list = new ArrayList<>();
-        
-        try (Statement stmt = conn.createStatement()) {
-            ResultSet result = stmt.executeQuery(sql);
-            while (result.next()) {
-                long id = result.getLong("id");
-                String makeModel = result.getString("makeModel");
-                BigDecimal engineSize = result.getBigDecimal("engineSize");
-                Car.FuelType fuelType = Car.FuelType.valueOf(result.getString("fuelType"));
-                
-                Car car = new Car(id, makeModel, engineSize, fuelType);
-                list.add(car);
-            }
-        }
-        return list;
-    }
-    
-    public void addCar(Car car) throws SQLException {
-        String sql = "INSERT INTO cars (makeModel, engineSize, fuelType) VALUES(?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, car.getMakeModel());
-            //stmt.setDouble(2, 2.4);
-            stmt.setDouble(2, car.getEngineSize().doubleValue());
-            stmt.setString(3, car.getFuelType().toString());
-            
-            stmt.executeUpdate();
-        } 
-    }
-    
-    
-    public void updateCar(Car car) throws SQLException {
-        String sql = "UPDATE cars SET makeModel = ?, engineSize = ?, fuelType = ? WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, car.getMakeModel());
-            stmt.setDouble(2, car.getEngineSize().doubleValue());
-            stmt.setString(3, car.getFuelType().toString());
-            stmt.setLong(4, car.getId());
-            
-            stmt.executeUpdate();
-        }
-    }
-    
-    public void deleteCar(long id) throws SQLException {
-        String sql = "DELETE FROM cars WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            stmt.executeUpdate();
-        }
-    }
- */   
     
    // For Jerry
    ////////////////////////////////////////////////////////////////////
