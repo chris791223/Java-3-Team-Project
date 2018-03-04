@@ -36,7 +36,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     private final String CREATE_NEW_TASK = "Create New Task: ";
     JDialog parentDlg = null;
     long currentProjectId;
-    Project currentProject;
+    Project currentProject = null;
     long currentTaskId;
 
     /**
@@ -59,7 +59,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             dispose(); // can't continue if database connection failed
         }
 
-        if (currentProjectId != 0) {
+        if (currentProjectId != 0) {            
             try {
                 // get current project object
                 this.currentProject = db.getProjectById(this.currentProjectId);
