@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -19,22 +20,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-
+import javax.swing.table.TableColumnModel;
 
 public class PJMS extends javax.swing.JFrame {
 
-   
-    private final Pattern EMAL_PATTERN = Pattern.compile(".+@.+");
-    private DefaultTableModel projectTableModel=null;
-    private DefaultTableModel taskTableModel=null;
+    //private final Pattern EMAIL_PATTERN = Pattern.compile(".+@.+");
+    private final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
+    private DefaultTableModel projectTableModel = null;
+    private DefaultTableModel taskTableModel = null;
     private final int REMINDER_DAY = 2;
     private final int REMINDER_COLOR_RED = 1;
     //private final int REMINDER_COLOR_BLUE = 2;
@@ -43,34 +42,36 @@ public class PJMS extends javax.swing.JFrame {
     //private int loginInputFlag=1;
     private Database db;
     public static User currentUser = null;
-    
+    private boolean editFlag = false;
+
     class ReminderRenderer implements TableCellRenderer {
 
-    public final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
-    
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
-        Component renderer
-                = DEFAULT_RENDERER.getTableCellRendererComponent(table, value,
-                        isSelected, hasFocus, row, column);
-        Color background=null;  
-        Color foreground=null;
-        if (column == 5) {
-            if(colorFlag[row]==REMINDER_COLOR_RED){
-                background = Color.RED;
-            }else if(colorFlag[row]==REMINDER_COLOR_YELLOW){
-                background = Color.YELLOW;
+        public final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            Component renderer
+                    = DEFAULT_RENDERER.getTableCellRendererComponent(table, value,
+                            isSelected, hasFocus, row, column);
+            Color background = null;
+            Color foreground = null;
+            if (column == 5) {
+                if (colorFlag[row] == REMINDER_COLOR_RED) {
+                    background = Color.RED;
+                } else if (colorFlag[row] == REMINDER_COLOR_YELLOW) {
+                    background = Color.YELLOW;
+                }
             }
-        } 
-        foreground = Color.BLUE;
-               
-        renderer.setBackground(background);
-        renderer.setForeground(foreground);
-        return renderer;
+            foreground = Color.BLUE;
+
+            renderer.setBackground(background);
+            renderer.setForeground(foreground);
+            return renderer;
+        }
+
     }
 
-}
     public static boolean isInteger(String str) {
         for (char c : str.toCharArray()) {
             if (!Character.isDigit(c)) {
@@ -79,52 +80,54 @@ public class PJMS extends javax.swing.JFrame {
         }
         return true;
     }
-    private double countTwoDate(Date d1,Date d2){
-        return Math.ceil((d1.getTime()-d2.getTime())/(1000*3600*24.0));
+
+    private BigDecimal countTwoDate(Date d1, Date d2) {
+        return new BigDecimal(Math.ceil((d1.getTime() - d2.getTime()) / (1000 * 3600 * 24.0)));
     }
-    private void showTasksList(ArrayList<Task> pList){
-        colorFlag = new int[pList.size()];            
-            int rowIndex=0;
-            String alertString = "";
-            double diff=0.0;
-            for(Task l : pList){
-                Date now = new Date();  
+
+    private void showTasksList(ArrayList<Task> pList) {
+        colorFlag = new int[pList.size()];
+        int rowIndex = 0;
+        String alertString = "";
+        BigDecimal diff = null;
+        for (Task l : pList) {
+            boolean isCompleted = l.getIsCompleted();
+            if (!isCompleted) {
+                Date now = new Date();
                 Date sdp = l.getStartDatePlanned();
                 Date sda = l.getStartDateActual();
                 Date edp = l.getEndDatePlanned();
-                Date eda = l.getEndDateActual();                
-                if(sda==null&&sdp!=null){
-                    diff = countTwoDate(sdp,now);
-                    if(diff>=0&&diff<=REMINDER_DAY){
-                        diff = Math.abs(diff);
-                        alertString = diff + " Days due to start Date";
-                        colorFlag[rowIndex]=REMINDER_COLOR_YELLOW;
-                    }else if(diff<0){
-                        diff = Math.abs(diff);
-                        alertString = "Task is over start date " + diff + " days";
-                        colorFlag[rowIndex]=REMINDER_COLOR_RED;
-                    }                    
-                }else if(eda==null&&edp!=null){
-                    diff = Math.abs(diff);
-                    diff = countTwoDate(edp,now);
-                    if(diff>=0&&diff<=REMINDER_DAY){
-                        alertString = diff + " Days due to end Date";
-                        colorFlag[rowIndex]=REMINDER_COLOR_YELLOW;
-                    }else if(diff<0){
-                        diff = Math.abs(diff);
-                        alertString = "Task is over end date " + diff + " days";
-                        colorFlag[rowIndex]=REMINDER_COLOR_RED;
-                    }    
-                }                
-                rowIndex++;                
-                taskTableModel.addRow(new Object[]{l.getId(),l.getName(),l.getDescription(),l.getPersonInChargeName(),l.getIsCompleted(),alertString,l.getStartDatePlanned(),l.getEndDatePlanned(),l.getStartDateActual(),l.getEndDateActual()});
-                alertString="";
-            }   
+                Date eda = l.getEndDateActual();
+                if (sda == null && sdp != null) {
+                    diff = countTwoDate(sdp, now);
+                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1) {
+                        alertString = diff.abs() + " Days due to start Date";
+                        colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
+                    } else if (diff.compareTo(BigDecimal.ZERO) == -1) {                      
+                        alertString = diff.abs() + " Days over start Date ";
+                        colorFlag[rowIndex] = REMINDER_COLOR_RED;
+                    }
+                } else if (eda == null && edp != null) {
+                    diff = countTwoDate(edp, now);
+                    if (diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1 && diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1) {
+                        alertString = diff.abs() + " Days due to end Date";
+                        colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
+                    } else if (diff.compareTo(BigDecimal.ZERO) == -1) {
+                        alertString = diff.abs() + " Days over end Date ";
+                        colorFlag[rowIndex] = REMINDER_COLOR_RED;
+                    }
+                }
+            }
+            rowIndex++;
+            taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), l.getIsCompleted(), alertString, l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
+            alertString = "";
+        }
     }
-    private void loadTasksById(int id){
-        for(int i=taskTableModel.getRowCount()-1;i>=0;i--){
+
+    private void loadTasksById(int id) {
+        for (int i = taskTableModel.getRowCount() - 1; i >= 0; i--) {
             taskTableModel.removeRow(i);
-        }        
+        }
         try {
             ArrayList<Task> pList = db.getTasksById(id);
             showTasksList(pList);
@@ -134,12 +137,13 @@ public class PJMS extends javax.swing.JFrame {
                     "Load projects information failure!\n" + ex.getMessage(),
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        }        
+        }
     }
-    private void loadAllTasks(){
-        for(int i=taskTableModel.getRowCount()-1;i>=0;i--){
+
+    private void loadAllTasks() {
+        for (int i = taskTableModel.getRowCount() - 1; i >= 0; i--) {
             taskTableModel.removeRow(i);
-        }        
+        }
         try {
             ArrayList<Task> pList = db.getAllTasks();
             showTasksList(pList);
@@ -149,63 +153,67 @@ public class PJMS extends javax.swing.JFrame {
                     "Load tasks information failure!\n" + ex.getMessage(),
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        }  
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(0).setPreferredWidth(23);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(1).setPreferredWidth(86);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(2).setPreferredWidth(131);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(3).setPreferredWidth(64);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(4).setPreferredWidth(77);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(5).setPreferredWidth(269);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(6).setPreferredWidth(102);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(7).setPreferredWidth(107);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(8).setPreferredWidth(88);
-        mainDlg_tbRemenderTask.getColumnModel().getColumn(9).setPreferredWidth(88);
-        
+        }
+        TableColumnModel TCModel = mainDlg_tbRemenderTask.getColumnModel();
+        TCModel.getColumn(0).setPreferredWidth(23);
+        TCModel.getColumn(1).setPreferredWidth(86);
+        TCModel.getColumn(2).setPreferredWidth(131);
+        TCModel.getColumn(3).setPreferredWidth(64);
+        TCModel.getColumn(4).setPreferredWidth(77);
+        TCModel.getColumn(5).setPreferredWidth(269);
+        TCModel.getColumn(6).setPreferredWidth(102);
+        TCModel.getColumn(7).setPreferredWidth(107);
+        TCModel.getColumn(8).setPreferredWidth(88);
+        TCModel.getColumn(9).setPreferredWidth(88);
+
         mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
     }
-    private void loadAllProjects(){
-        for(int i=projectTableModel.getRowCount()-1;i>=0;i--){
+
+    private void loadAllProjects() {
+        for (int i = projectTableModel.getRowCount() - 1; i >= 0; i--) {
             projectTableModel.removeRow(i);
         }
-        
+
         try {
             ArrayList<Project> pList = db.getAllProjects();
-            for(Project l : pList){
-                projectTableModel.addRow(new Object[]{l.getId(),l.getName(),l.getDescription(),l.getProjectManager(),l.getPMName(),l.getTasknums(),l.getIsCompleted(),l.getStartDatePlanned(),l.getEndDatePlanned(),l.getStartDateActual(),l.getEndDateActual()});
-            }            
+            for (Project l : pList) {
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(), l.getIsCompleted(), l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
+            }
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null,
                     "Load projects information failure!\n" + ex.getMessage(),
                     "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        }          
+        }
         //set every cell's font align center
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
-        leftRenderer.setHorizontalAlignment(JLabel.LEFT);        
+        leftRenderer.setHorizontalAlignment(JLabel.LEFT);
         int listSize = mainDlg_tbProjects.getColumnCount();
+        TableColumnModel TCModel = mainDlg_tbProjects.getColumnModel();
         for (int i = 0; i < listSize; i++) {
-            mainDlg_tbProjects.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);            
+            TCModel.getColumn(i).setCellRenderer(leftRenderer);
         }
-        mainDlg_tbProjects.getColumnModel().getColumn(0).setPreferredWidth(23);
-        mainDlg_tbProjects.getColumnModel().getColumn(1).setPreferredWidth(75);
-        mainDlg_tbProjects.getColumnModel().getColumn(2).setPreferredWidth(231);
-        mainDlg_tbProjects.getColumnModel().getColumn(3).setPreferredWidth(45);
-        mainDlg_tbProjects.getColumnModel().getColumn(4).setPreferredWidth(66);
-        mainDlg_tbProjects.getColumnModel().getColumn(5).setPreferredWidth(65);
-        mainDlg_tbProjects.getColumnModel().getColumn(6).setPreferredWidth(62);
-        mainDlg_tbProjects.getColumnModel().getColumn(7).setPreferredWidth(63);
-        mainDlg_tbProjects.getColumnModel().getColumn(8).setPreferredWidth(58);
-        mainDlg_tbProjects.getColumnModel().getColumn(9).setPreferredWidth(69);
-        mainDlg_tbProjects.getColumnModel().getColumn(10).setPreferredWidth(65);
+        TCModel.getColumn(0).setPreferredWidth(23);
+        TCModel.getColumn(1).setPreferredWidth(75);
+        TCModel.getColumn(2).setPreferredWidth(231);
+        TCModel.getColumn(3).setPreferredWidth(45);
+        TCModel.getColumn(4).setPreferredWidth(66);
+        TCModel.getColumn(5).setPreferredWidth(65);
+        TCModel.getColumn(6).setPreferredWidth(62);
+        TCModel.getColumn(7).setPreferredWidth(63);
+        TCModel.getColumn(8).setPreferredWidth(58);
+        TCModel.getColumn(9).setPreferredWidth(69);
+        TCModel.getColumn(10).setPreferredWidth(65);
         //set every coloum's width
     }
+
     /**
      * Creates new form Login
      */
     public PJMS() {
         try {
-            db=new Database();
+            db = new Database();
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null,
@@ -215,10 +223,10 @@ public class PJMS extends javax.swing.JFrame {
             System.exit(1);
         }
         initComponents();
-        projectTableModel =(DefaultTableModel)mainDlg_tbProjects.getModel();   
-        taskTableModel = (DefaultTableModel)mainDlg_tbRemenderTask.getModel();   
+        projectTableModel = (DefaultTableModel) mainDlg_tbProjects.getModel();
+        taskTableModel = (DefaultTableModel) mainDlg_tbRemenderTask.getModel();
         loadAllProjects();
-        loadAllTasks();        
+        loadAllTasks();
     }
 
     /**
@@ -260,10 +268,13 @@ public class PJMS extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         userDlg_tfAbility = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        userDlg_tfPass = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
+        userDlg_btnEdit = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
+        userDlg_tfPass = new javax.swing.JPasswordField();
+        jLabel9 = new javax.swing.JLabel();
+        userDlg_tfPassconfirm = new javax.swing.JPasswordField();
+        jSeparator3 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         loginDlg_tfUserID = new javax.swing.JTextField();
@@ -291,7 +302,7 @@ public class PJMS extends javax.swing.JFrame {
         });
 
         jLabel30.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
-        jLabel30.setText("Project List:");
+        jLabel30.setText("Projects List:");
 
         jPanel9.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -326,11 +337,6 @@ public class PJMS extends javax.swing.JFrame {
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
-            }
-        });
-        mainDlg_tbRemenderTask.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                mainDlg_tbRemenderTaskMouseClicked(evt);
             }
         });
         jScrollPane11.setViewportView(mainDlg_tbRemenderTask);
@@ -427,7 +433,7 @@ public class PJMS extends javax.swing.JFrame {
         jMenu7.setText("File");
         mainDlg_miAccount.add(jMenu7);
 
-        mainDlg_menuAccount.setText("Exit");
+        mainDlg_menuAccount.setText("Hi,...");
 
         jMenuItem2.setText("Your Account");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
@@ -486,6 +492,7 @@ public class PJMS extends javax.swing.JFrame {
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
+        userDlg.setTitle("Your account");
         userDlg.setModal(true);
 
         userDlg_lbHi.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
@@ -493,47 +500,95 @@ public class PJMS extends javax.swing.JFrame {
 
         jLabel4.setText("ID:");
 
-        jLabel5.setText("Email:");
+        userDlg_tfID.setEnabled(false);
+
+        jLabel5.setText("Email (*):");
+
+        userDlg_tfEmail.setEnabled(false);
+        userDlg_tfEmail.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                userDlg_tfEmailFocusGained(evt);
+            }
+        });
 
         jLabel6.setText("Ability:");
 
-        jLabel8.setText("Password:");
+        userDlg_tfAbility.setEnabled(false);
+        userDlg_tfAbility.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                userDlg_tfAbilityFocusGained(evt);
+            }
+        });
 
-        jButton3.setText("Edit");
+        jLabel8.setText("Password(*):");
+
+        userDlg_btnEdit.setText("Edit");
+        userDlg_btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                userDlg_btnEditActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Cancel");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
+        userDlg_tfPass.setText("jPasswordField1");
+        userDlg_tfPass.setEnabled(false);
+        userDlg_tfPass.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                userDlg_tfPassFocusGained(evt);
+            }
+        });
+
+        jLabel9.setText("Confirm:");
+
+        userDlg_tfPassconfirm.setText("jPasswordField1");
+        userDlg_tfPassconfirm.setEnabled(false);
+        userDlg_tfPassconfirm.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                userDlg_tfPassconfirmFocusGained(evt);
+            }
+        });
 
         javax.swing.GroupLayout userDlgLayout = new javax.swing.GroupLayout(userDlg.getContentPane());
         userDlg.getContentPane().setLayout(userDlgLayout);
         userDlgLayout.setHorizontalGroup(
             userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSeparator2)
             .addGroup(userDlgLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(userDlgLayout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addGap(27, 27, 27)
-                        .addComponent(userDlg_tfPass))
-                    .addGroup(userDlgLayout.createSequentialGroup()
-                        .addGap(0, 124, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, userDlgLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(userDlg_lbHi, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(userDlg_btnEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(userDlgLayout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(71, 71, 71)
-                        .addComponent(userDlg_tfID, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(userDlg_lbHi, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(userDlgLayout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(userDlg_tfID, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(userDlgLayout.createSequentialGroup()
                         .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5)
-                            .addComponent(jLabel6))
-                        .addGap(51, 51, 51)
-                        .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(userDlg_tfEmail)
+                            .addComponent(userDlg_tfPassconfirm, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                             .addComponent(userDlg_tfAbility)
-                            .addComponent(userDlg_tfEmail))))
+                            .addComponent(userDlg_tfPass, javax.swing.GroupLayout.Alignment.LEADING))))
                 .addContainerGap())
-            .addComponent(jSeparator2)
+            .addComponent(jSeparator3)
         );
         userDlgLayout.setVerticalGroup(
             userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -558,21 +613,22 @@ public class PJMS extends javax.swing.JFrame {
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
                     .addComponent(userDlg_tfPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4))
-                .addContainerGap(15, Short.MAX_VALUE))
+                    .addComponent(jLabel9)
+                    .addComponent(userDlg_tfPassconfirm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(15, 15, 15)
+                .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton4)
+                    .addComponent(userDlg_btnEdit))
+                .addContainerGap())
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login");
         setName("frmLogin"); // NOI18N
-        addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                formFocusGained(evt);
-            }
-        });
 
         jLabel1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel1.setText("Password:");
@@ -679,54 +735,49 @@ public class PJMS extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private boolean isPasswordCorrect(char [] passwordInput ,char [] passwordDBChar){
-        boolean isCorrect = true;        
+    private boolean isPasswordCorrect(char[] passwordInput, char[] passwordDBChar) {
+        boolean isCorrect = false;
         if (passwordInput.length != passwordDBChar.length) {
             isCorrect = false;
         } else {
-            isCorrect = Arrays.equals (passwordInput, passwordDBChar);
+            isCorrect = Arrays.equals(passwordInput, passwordDBChar);
         }
         return isCorrect;
     }
-    
-    private boolean isInputEmail(String str){
-        Matcher matcher = EMAL_PATTERN.matcher(str);
-        return matcher.find();
+
+    private boolean isInputEmail(String str) {
+        Matcher matcher = EMAIL_PATTERN.matcher(str);
+        return matcher.matches();
     }
-    
-    private boolean isMatchUserAccount(){
+
+    private boolean isMatchUserAccount() {
         String userID = loginDlg_tfUserID.getText();
         char[] passwordInput = loginDlg_pwtfPassword.getPassword();
-        String passwordDB="";
-        char[] passwordDBChar=null;
+        String passwordDB = "";
+        char[] passwordDBChar = null;
         long userIdentify = 0;
-        if(isInputEmail(userID)){
+        if (isInputEmail(userID)) {
             try {
                 passwordDB = db.getPasswordByEmail(userID);
                 userIdentify = db.getUserIdByEmail(userID);
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(null,
-                    "Select password from users by Email failure!\n" + ex.getMessage(),
-                    "Database error",
-                    JOptionPane.ERROR_MESSAGE);
-                //this.setVisible(true);
-                return false;
-            }
-            if(passwordDB.isEmpty()){
-                JOptionPane.showMessageDialog(null,
-                    "You are enter a wrong email!\n" ,
-                    "Email wrong!",
-                    JOptionPane.INFORMATION_MESSAGE);
-                //loginDlg_tfUserID.selectAll();
-                //loginDlg_tfFake.requestFocusInWindow();
+                        "Select password from users by Email failure!\n" + ex.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
                 loginDlg_tfUserID.requestFocusInWindow();
-                //loginDlg_tfUserID.setText("");
-                //this.setVisible(true);
-                //loginInputFlag=1;
                 return false;
             }
-        }else{
+            if (passwordDB.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "You are enter a wrong email!\n",
+                        "Email wrong!",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loginDlg_tfUserID.requestFocusInWindow();
+                return false;
+            }
+        } else {
             if (isInteger(userID)) {
                 try {
                     passwordDB = db.getPasswordByEmployeeID(userID);
@@ -737,7 +788,7 @@ public class PJMS extends javax.swing.JFrame {
                             "Select password from users by ID failure!\n" + ex.getMessage(),
                             "Database error",
                             JOptionPane.ERROR_MESSAGE);
-                    //this.setVisible(true);
+                    loginDlg_tfUserID.requestFocusInWindow();
                     return false;
                 }
                 if (passwordDB.isEmpty()) {
@@ -745,12 +796,7 @@ public class PJMS extends javax.swing.JFrame {
                             "You are enter a wrong Employee ID!\n",
                             "Employee ID wrong!",
                             JOptionPane.INFORMATION_MESSAGE);
-                    //loginDlg_tfUserID.selectAll();
-                    //loginDlg_tfFake.requestFocusInWindow();
                     loginDlg_tfUserID.requestFocusInWindow();
-                    //loginDlg_tfUserID.setText("");
-                    //this.setVisible(true);
-                    //loginInputFlag=1;
                     return false;
                 }
             } else {
@@ -758,44 +804,39 @@ public class PJMS extends javax.swing.JFrame {
                         "You entered a ID that may contain characters!\n",
                         "Enter error",
                         JOptionPane.ERROR_MESSAGE);
-                //this.setVisible(true);
+                loginDlg_tfUserID.requestFocusInWindow();
                 return false;
             }
         }
         passwordDBChar = passwordDB.toCharArray();
-        if(!isPasswordCorrect(passwordInput,passwordDBChar)){
+        if (!isPasswordCorrect(passwordInput, passwordDBChar)) {
             JOptionPane.showMessageDialog(null,
-                    "You are enter a wrong password!\n" ,
+                    "You are enter a wrong password!\n",
                     "Password wrong!",
                     JOptionPane.INFORMATION_MESSAGE);
-            //loginDlg_pwtfPassword.selectAll();
-            //loginDlg_tfUserID.requestFocusInWindow();
             loginDlg_pwtfPassword.requestFocusInWindow();
-            //loginDlg_pwtfPassword.setText("");
-            //this.setVisible(true);
-            //loginInputFlag=2;            
             return false;
-        }    
-        currentUser = new User(userIdentify, true);
-            try {
-                mainDlg_menuAccount.setText("  |  Hi! "+db.getUserNameById(userIdentify));                
-            } catch (SQLException ex) {
-                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        }
+
+        try {
+            currentUser = db.getUserById(userIdentify);
+            mainDlg_menuAccount.setText("  |  Hi! " + currentUser.getName());
+        } catch (SQLException ex) {
+            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return true;
     }
-    
+
     private void loginDlg_btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginActionPerformed
-        //this.setVisible(false);
         if (isMatchUserAccount()) {
             this.setVisible(false);
             mainDlg.pack();
             mainDlg.setLocationRelativeTo(this);
             mainDlg.setVisible(true);
-        }       
+        }
     }//GEN-LAST:event_loginDlg_btnLoginActionPerformed
 
-    
+
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jButton6ActionPerformed
@@ -809,7 +850,7 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_loginDlg_pwtfPasswordFocusGained
 
     private void loginDlg_btnLoginKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginKeyPressed
-        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {            
+        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
             if (isMatchUserAccount()) {
                 this.setVisible(false);
                 mainDlg.pack();
@@ -818,13 +859,9 @@ public class PJMS extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_loginDlg_btnLoginKeyPressed
-
-    private void mainDlg_tbRemenderTaskMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbRemenderTaskMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_mainDlg_tbRemenderTaskMouseClicked
     private void showProjectEditDlg() {
         int rowindex = mainDlg_tbProjects.getSelectedRow();
-        if (rowindex != -1) {            
+        if (rowindex != -1) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
             Project p = null;
             try {
@@ -875,14 +912,14 @@ public class PJMS extends javax.swing.JFrame {
                     eda = sdf.parse(edao.toString());
                 }
                 p = new Project(id, name, description, sdp, edp, sda, eda, personInCharge, isCompleted);
-                new ProjectDetails(mainDlg,id).setVisible(true);
+                new ProjectDetails(mainDlg, id).setVisible(true);
                 mainDlg.setVisible(false);
             } catch (ParseException ex) {
                 Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             JOptionPane.showMessageDialog(null,
-                    "Please select a project!\n" ,
+                    "Please select a project!\n",
                     "Control tutorial!",
                     JOptionPane.INFORMATION_MESSAGE);
         }
@@ -892,28 +929,20 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
-        new ProjectDetails(mainDlg,0).setVisible(true);
+        new ProjectDetails(mainDlg, 0).setVisible(true);
         mainDlg.setVisible(false);
-        /*
-        JFrame jf = new ProjectDetails(null);
-        JDialog jd = new JDialog(jf);
-        jd.setModal(true);
-        jd.pack();
-        jd.setVisible(true);
-        */
     }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
 
     private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
-       loadAllProjects();
-       loadAllTasks();       
+        loadAllProjects();
+        loadAllTasks();
     }//GEN-LAST:event_mainDlgWindowGainedFocus
 
     private void mainDlg_tbProjectsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMousePressed
-        if(evt.getClickCount()==2){
+        if (evt.getClickCount() == 2) {
             showProjectEditDlg();
         } else {
             int index = mainDlg_tbProjects.getSelectedRow();
-            //mainDlg_tbProjects.setde
             String idString = projectTableModel.getValueAt(index, 0).toString();
             if (isInteger(idString)) {
                 int id = Integer.parseInt(idString);
@@ -927,7 +956,7 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_mainDlg_pmShowDetailActionPerformed
 
     private void mainDlg_tbProjectsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMouseReleased
-        
+
         if (evt.isPopupTrigger()) {
             JTable table = (JTable) evt.getSource();
             Point point = evt.getPoint();
@@ -937,19 +966,7 @@ public class PJMS extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_mainDlg_tbProjectsMouseReleased
 
-    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
-        /*
-        System.out.println("Focus Gained");
-        if(loginInputFlag==1){
-            loginDlg_tfUserID.requestFocusInWindow();
-        }else if(loginInputFlag==2){
-            loginDlg_tfUserID.requestFocusInWindow();
-        }
-        */
-    }//GEN-LAST:event_formFocusGained
-
     private void loginDlg_tfUserIDKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_tfUserIDKeyPressed
-        // TODO add your handling code here:
         if ((evt.getKeyChar() == KeyEvent.VK_ENTER)) {
             loginDlg_pwtfPassword.requestFocusInWindow();
         }
@@ -958,25 +975,141 @@ public class PJMS extends javax.swing.JFrame {
     private void loginDlg_pwtfPasswordKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_pwtfPasswordKeyPressed
         if ((evt.getKeyChar() == KeyEvent.VK_ENTER)) {
             loginDlg_btnLogin.requestFocusInWindow();
-            /*
-            if (isMatchUserAccount()) {
-                this.setVisible(false);
-                mainDlg.pack();
-                mainDlg.setLocationRelativeTo(this);
-                mainDlg.setVisible(true);
-            }
-            */
         }
     }//GEN-LAST:event_loginDlg_pwtfPasswordKeyPressed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+    private void disableUserDlgTextField() {
+        userDlg_tfID.setEnabled(false);
+        userDlg_tfEmail.setEnabled(false);
+        userDlg_tfAbility.setEnabled(false);
+        userDlg_tfPass.setEnabled(false);
+        userDlg_tfPassconfirm.setEnabled(false);
+        userDlg_btnEdit.setText("Edit");
+    }
 
+    private void enableUserDlgTextField() {
+        userDlg_tfEmail.setEnabled(true);
+        userDlg_tfAbility.setEnabled(true);
+        userDlg_tfPass.setEnabled(true);
+        userDlg_tfPassconfirm.setEnabled(true);
+        userDlg_btnEdit.setText("Save");
+    }
+
+    private void showCurrentUserInfo() {
+        try {
+            User user = db.getUserById(currentUser.getId());
+            userDlg_lbHi.setText("Hi, " + currentUser.getName());
+            userDlg_tfID.setText("" + currentUser.getId());
+            userDlg_tfEmail.setText(user.getEmail());
+            userDlg_tfAbility.setText(user.getAbility());
+            userDlg_tfPass.setText(user.getPassword());
+            userDlg_tfPassconfirm.setText(user.getPassword());
+        } catch (SQLException ex) {
+            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         userDlg.pack();
+        disableUserDlgTextField();
+        if (currentUser != null) {
+            showCurrentUserInfo();
+        }
+        userDlg.setLocationRelativeTo(this);
         userDlg.setVisible(true);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        editFlag = false;
+        userDlg.dispose();
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void userDlg_btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userDlg_btnEditActionPerformed
+        if (!editFlag) {
+            editFlag = true;
+            enableUserDlgTextField();
+            userDlg_tfEmail.requestFocusInWindow();
+        } else if (validateUserInputInfo()) {
+            editFlag = false;
+            disableUserDlgTextField();
+            String email = userDlg_tfEmail.getText();
+            String ability = userDlg_tfAbility.getText();
+            char[] password = userDlg_tfPass.getPassword();
+            User user = new User(currentUser.getId(), currentUser.getName(), email, ability, String.valueOf(password));
+            try {
+                db.updateUser(user);
+                JOptionPane.showMessageDialog(null,
+                        "Your account has updated successfully!\n",
+                        "Successfully!",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_userDlg_btnEditActionPerformed
+
+    private void userDlg_tfEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_userDlg_tfEmailFocusGained
+        userDlg_tfEmail.selectAll();
+    }//GEN-LAST:event_userDlg_tfEmailFocusGained
+
+    private void userDlg_tfAbilityFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_userDlg_tfAbilityFocusGained
+        userDlg_tfAbility.selectAll();
+    }//GEN-LAST:event_userDlg_tfAbilityFocusGained
+
+    private void userDlg_tfPassFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_userDlg_tfPassFocusGained
+        userDlg_tfPass.selectAll();
+    }//GEN-LAST:event_userDlg_tfPassFocusGained
+
+    private void userDlg_tfPassconfirmFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_userDlg_tfPassconfirmFocusGained
+        userDlg_tfPassconfirm.selectAll();
+    }//GEN-LAST:event_userDlg_tfPassconfirmFocusGained
+    private boolean validateUserInputInfo() {
+        String email = userDlg_tfEmail.getText();
+        char[] password = userDlg_tfPass.getPassword();
+        char[] password2 = userDlg_tfPassconfirm.getPassword();
+        if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Email cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            userDlg_tfEmail.requestFocusInWindow();
+            return false;
+        } else if (!isInputEmail(email)) {
+            JOptionPane.showMessageDialog(null,
+                    "You enter a wrong email,please enter again!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            userDlg_tfEmail.requestFocusInWindow();
+            return false;
+        }
+        if (password.length == 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Password cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            userDlg_tfPass.requestFocusInWindow();
+            return false;
+        }
+        if (password2.length == 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Password cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            userDlg_tfPassconfirm.requestFocusInWindow();
+            return false;
+        } else if (!isPasswordCorrect(password, password2)) {
+            JOptionPane.showMessageDialog(null,
+                    "Passwords are not match,please enter again!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            userDlg_tfPass.requestFocusInWindow();
+            userDlg_tfPassconfirm.setText("");
+            return false;
+        }
+        return true;
+    }
 
     /**
      * @param args the command line arguments
@@ -994,8 +1127,7 @@ public class PJMS extends javax.swing.JFrame {
                     break;
                 }
             }
-        }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(PJMS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
@@ -1016,7 +1148,6 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
@@ -1030,6 +1161,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu7;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
@@ -1038,6 +1170,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane11;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
     private javax.swing.JButton loginDlg_btnLogin;
     private javax.swing.JPasswordField loginDlg_pwtfPassword;
     private javax.swing.JTextField loginDlg_tfUserID;
@@ -1050,10 +1183,12 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JTable mainDlg_tbProjects;
     private javax.swing.JTable mainDlg_tbRemenderTask;
     private javax.swing.JDialog userDlg;
+    private javax.swing.JButton userDlg_btnEdit;
     private javax.swing.JLabel userDlg_lbHi;
     private javax.swing.JTextField userDlg_tfAbility;
     private javax.swing.JTextField userDlg_tfEmail;
     private javax.swing.JTextField userDlg_tfID;
-    private javax.swing.JTextField userDlg_tfPass;
+    private javax.swing.JPasswordField userDlg_tfPass;
+    private javax.swing.JPasswordField userDlg_tfPassconfirm;
     // End of variables declaration//GEN-END:variables
 }
