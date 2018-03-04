@@ -409,8 +409,9 @@ public class Database {
         return list;
     }
     public long getUserIdByEmail(String email) throws SQLException{
-        String sql = "SELECT id FROM users WHERE email =" + email;                
+        String sql = "SELECT id FROM users WHERE email = ?" ;                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
             ResultSet result = stmt.executeQuery();
             if (result.next()) {
                 return result.getLong("id");
@@ -452,6 +453,31 @@ public class Database {
         return list;
     }
     
+    public User getUserById(long id) throws SQLException {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {                
+                return new User(result.getLong("id"), result.getString("name"), result.getString("email"),result.getString("ability"),result.getString("password"));
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    
+    public void updateUser(User user) throws SQLException {
+        String sql = "UPDATE users SET email=?, ability=? ,password = ? WHERE id= ?";
+        //System.out.println(user.getPassword());
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getAbility());
+            stmt.setString(3, user.getPassword());
+            stmt.setLong(4, user.getId());
+            stmt.executeUpdate();
+        }
+    }
                 
 
     // For Jerry
