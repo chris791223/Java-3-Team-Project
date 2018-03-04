@@ -100,7 +100,7 @@ public class PJMS extends javax.swing.JFrame {
                 Date eda = l.getEndDateActual();
                 if (sda == null && sdp != null) {
                     diff = countTwoDate(sdp, now);
-                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1) {
+                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) &&(diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1||diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
                         alertString = diff.abs() + " Days due to start Date";
                         colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
                     } else if (diff.compareTo(BigDecimal.ZERO) == -1) {                      
@@ -109,7 +109,7 @@ public class PJMS extends javax.swing.JFrame {
                     }
                 } else if (eda == null && edp != null) {
                     diff = countTwoDate(edp, now);
-                    if (diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1 && diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1) {
+                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && (diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1||diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
                         alertString = diff.abs() + " Days due to end Date";
                         colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
                     } else if (diff.compareTo(BigDecimal.ZERO) == -1) {
@@ -860,6 +860,7 @@ public class PJMS extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_loginDlg_btnLoginKeyPressed
     private void showProjectEditDlg() {
+        /*
         int rowindex = mainDlg_tbProjects.getSelectedRow();
         if (rowindex != -1) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
@@ -923,6 +924,22 @@ public class PJMS extends javax.swing.JFrame {
                     "Control tutorial!",
                     JOptionPane.INFORMATION_MESSAGE);
         }
+        */
+        int rowindex = mainDlg_tbProjects.getSelectedRow();
+        if (rowindex != -1) {
+            Object ido = projectTableModel.getValueAt(rowindex, 0);
+            int id = 0;
+            if (ido != null) {
+                id = Integer.parseInt(ido.toString());
+            }
+            new ProjectDetails(mainDlg, id).setVisible(true);
+            mainDlg.setVisible(false);
+        } else {
+            JOptionPane.showMessageDialog(null,
+                    "Please select a project!\n",
+                    "Control tutorial!",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
         showProjectEditDlg();
@@ -979,7 +996,8 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_loginDlg_pwtfPasswordKeyPressed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        System.exit(0);
+        mainDlg.dispose();
+        this.setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     private void disableUserDlgTextField() {
         userDlg_tfID.setEnabled(false);
