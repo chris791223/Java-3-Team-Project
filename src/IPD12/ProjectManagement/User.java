@@ -15,11 +15,16 @@ public class User {
     private boolean isAvailable;
     
     // constructor
+    public User() {
+        
+    }
+
     public User(long id, boolean isAvailable) {
         this.id = id;
         this.isAvailable = isAvailable;
     }
 
+    // getters & setters
      public long getId() {
         return id;
     }

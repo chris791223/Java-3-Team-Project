@@ -349,6 +349,16 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_btTeamSave = new javax.swing.JButton();
         pjd_btTeamCancel = new javax.swing.JButton();
         pjd_btGoBackToPjList = new javax.swing.JButton();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        MenuProject = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        MenuTask = new javax.swing.JMenu();
+        MiNewTask = new javax.swing.JMenuItem();
+        MiEditTask = new javax.swing.JMenuItem();
+        MiDeleteTask = new javax.swing.JMenuItem();
+        MenuExit = new javax.swing.JMenu();
+        MiBackToPrevious = new javax.swing.JMenuItem();
+        MiExit = new javax.swing.JMenuItem();
 
         dlgTaskEditor.setTitle("Task Editor");
         dlgTaskEditor.setModal(true);
@@ -807,7 +817,6 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
         ));
         pjd_tbTaskList.setAutoscrolls(false);
-        pjd_tbTaskList.setColumnSelectionAllowed(false);
         pjd_tbTaskList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         pjd_tbTaskList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -986,7 +995,6 @@ public class ProjectDetails extends javax.swing.JFrame {
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel3Layout.createSequentialGroup()
                                 .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(jPanel3Layout.createSequentialGroup()
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1007,6 +1015,68 @@ public class ProjectDetails extends javax.swing.JFrame {
                 pjd_btGoBackToPjListActionPerformed(evt);
             }
         });
+
+        MenuProject.setText("Project");
+
+        jMenuItem1.setText("New Project ...");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        MenuProject.add(jMenuItem1);
+
+        jMenuBar1.add(MenuProject);
+
+        MenuTask.setText("Task");
+
+        MiNewTask.setText("New Task ...");
+        MiNewTask.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MiNewTaskActionPerformed(evt);
+            }
+        });
+        MenuTask.add(MiNewTask);
+
+        MiEditTask.setText("Edit Task ...");
+        MiEditTask.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MiEditTaskActionPerformed(evt);
+            }
+        });
+        MenuTask.add(MiEditTask);
+
+        MiDeleteTask.setText("Delete Task ...");
+        MiDeleteTask.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MiDeleteTaskActionPerformed(evt);
+            }
+        });
+        MenuTask.add(MiDeleteTask);
+
+        jMenuBar1.add(MenuTask);
+
+        MenuExit.setText("Exit");
+
+        MiBackToPrevious.setText("Back to Previous ...");
+        MiBackToPrevious.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MiBackToPreviousActionPerformed(evt);
+            }
+        });
+        MenuExit.add(MiBackToPrevious);
+
+        MiExit.setText("Exit System ...");
+        MiExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MiExitActionPerformed(evt);
+            }
+        });
+        MenuExit.add(MiExit);
+
+        jMenuBar1.add(MenuExit);
+
+        setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1168,11 +1238,33 @@ public class ProjectDetails extends javax.swing.JFrame {
         } // update project
         else {
             try {
+                db.setAutoCommit(false);
                 Project project = new Project(currentProjectId, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
                 db.updateProject(project);
 
                 // when update successfully
                 currentProject = project;
+
+                // release team
+                if (isCompleted) {
+
+                    ArrayList<Team> team = db.getAllTeamMembers(currentProjectId);
+                    User user = new User();
+
+                    // update team member status: isLeft = true
+                    for (Team member : team) {
+                        member.setProjectId(currentProjectId);
+                        member.setIsLeft(true);
+                        db.updateTeamMemberStatus(member);
+
+                        // update user status: isAvailable = true;
+                        user.setId(member.getId());
+                        user.setIsAvailable(true);
+                        db.updateUserStatus(user);
+                    }
+                }
+
+                db.commitUpdate();
 
                 // reload project summary
                 loadProjectSummary();
@@ -1182,6 +1274,22 @@ public class ProjectDetails extends javax.swing.JFrame {
             catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    db.rollbackUpdate();
+                }
+                catch (SQLException ex1) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            finally {
+                try {
+                    db.setAutoCommit(true);
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
 
@@ -1189,14 +1297,48 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btDetailSaveActionPerformed
 
     private void pjd_btMoveToTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveToTeamActionPerformed
+        boolean isProjectCompleted;
 
-        moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
+        if (currentProjectId != 0) {
+            try {
+                isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
+                if (isProjectCompleted) {
+                    JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
+                }
+                else {
+                    moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
+                }
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+            }
+        }
+        else {
+            JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
+        }
 
     }//GEN-LAST:event_pjd_btMoveToTeamActionPerformed
 
     private void pjd_btMoveBackFromTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveBackFromTeamActionPerformed
+        boolean isProjectCompleted;
 
-        moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+        if (currentProjectId != 0) {
+            try {
+                isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
+                if (!isProjectCompleted) {
+                    JOptionPane.showMessageDialog(this, "You could release person from team, \nbut be aware of the uncompleted project which needs to be done !", "Project not completed", JOptionPane.WARNING_MESSAGE);
+                }
+
+                moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+            }
+            catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+            }
+        }
 
     }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
 
@@ -1204,8 +1346,6 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (currentProjectId != 0) {
             loadTeamMember();
         }
-
-
     }//GEN-LAST:event_pjd_btTeamCancelActionPerformed
 
     private void pjd_btTeamSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btTeamSaveActionPerformed
@@ -1713,15 +1853,117 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_lstAllResourseMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_lstAllResourseMousePressed
         if (evt.getClickCount() == 2) {
-            moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
+            boolean isProjectCompleted;
+
+            if (currentProjectId != 0) {
+                try {
+                    isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
+                    if (isProjectCompleted) {
+                        JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
+                    }
+                    else {
+                        moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
+                    }
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+                }
+            }
+            else {
+                JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
+            }
         }
     }//GEN-LAST:event_pjd_lstAllResourseMousePressed
 
     private void pjd_lstCurTeamMemberMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_lstCurTeamMemberMousePressed
         if (evt.getClickCount() == 2) {
-            moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+            boolean isProjectCompleted;
+
+            if (currentProjectId != 0) {
+                try {
+                    isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
+                    if (!isProjectCompleted) {
+                        JOptionPane.showMessageDialog(this, "You could release person from team, \nbut be aware of the uncompleted project which needs to be done !", "Project not completed", JOptionPane.WARNING_MESSAGE);
+                    }
+
+                    moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+                }
+            }
         }
     }//GEN-LAST:event_pjd_lstCurTeamMemberMousePressed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        currentProjectId = 0;
+        loadProjectInfo();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void MiNewTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiNewTaskActionPerformed
+        if (currentProjectId == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Error: Please create a project before creating any task.",
+                    "No Project",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        else {
+            addTask();
+        }
+    }//GEN-LAST:event_MiNewTaskActionPerformed
+
+    private void MiEditTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiEditTaskActionPerformed
+        if (pjd_tbTaskList.getSelectedRow() == -1) {
+            if (pjd_tbTaskList.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Error: There is no task in the list.",
+                        "Task choose error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+            else {
+                JOptionPane.showMessageDialog(this,
+                        "Error: Please choose one task for editing.",
+                        "Task choose error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        else {
+            updateTask();
+        }
+    }//GEN-LAST:event_MiEditTaskActionPerformed
+
+    private void MiDeleteTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiDeleteTaskActionPerformed
+        if (pjd_tbTaskList.getSelectedRow() == -1) {
+            if (pjd_tbTaskList.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Error: There is no task in the list.",
+                        "Task choose error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+            else {
+                JOptionPane.showMessageDialog(this,
+                        "Error: Please choose one task for deleting.",
+                        "Task choose error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        else {
+            deleteTask();
+        }
+    }//GEN-LAST:event_MiDeleteTaskActionPerformed
+
+    private void MiBackToPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiBackToPreviousActionPerformed
+        parentDlg.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_MiBackToPreviousActionPerformed
+
+    private void MiExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiExitActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_MiExitActionPerformed
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
@@ -1750,6 +1992,14 @@ public class ProjectDetails extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenu MenuExit;
+    private javax.swing.JMenu MenuProject;
+    private javax.swing.JMenu MenuTask;
+    private javax.swing.JMenuItem MiBackToPrevious;
+    private javax.swing.JMenuItem MiDeleteTask;
+    private javax.swing.JMenuItem MiEditTask;
+    private javax.swing.JMenuItem MiExit;
+    private javax.swing.JMenuItem MiNewTask;
     private javax.swing.JDialog dlgTaskEditor;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1775,6 +2025,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
