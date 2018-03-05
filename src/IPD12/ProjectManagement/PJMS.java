@@ -170,16 +170,51 @@ public class PJMS extends javax.swing.JFrame {
 
         mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
     }
-
+    public void loadAllProjects(int controlCode) {
+        for (int i = projectTableModel.getRowCount() - 1; i >= 0; i--) {
+            projectTableModel.removeRow(i);
+        }
+        try {
+            ArrayList<Project> pList = db.getAllProjects(controlCode);
+            for (Project l : pList) {
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),String.valueOf(l.getIsCompleted()),String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Load projects information failure!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        //set every cell's font align center
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(JLabel.LEFT);
+        int listSize = mainDlg_tbProjects.getColumnCount();
+        TableColumnModel TCModel = mainDlg_tbProjects.getColumnModel();
+        for (int i = 0; i < listSize; i++) {
+            TCModel.getColumn(i).setCellRenderer(leftRenderer);
+        }
+        TCModel.getColumn(0).setPreferredWidth(23);
+        TCModel.getColumn(1).setPreferredWidth(75);
+        TCModel.getColumn(2).setPreferredWidth(231);
+        TCModel.getColumn(3).setPreferredWidth(45);
+        TCModel.getColumn(4).setPreferredWidth(66);
+        TCModel.getColumn(5).setPreferredWidth(65);
+        TCModel.getColumn(6).setPreferredWidth(62);
+        TCModel.getColumn(7).setPreferredWidth(63);
+        TCModel.getColumn(8).setPreferredWidth(58);
+        TCModel.getColumn(9).setPreferredWidth(69);
+        TCModel.getColumn(10).setPreferredWidth(65);
+        //set every coloum's width
+    }
     public void loadAllProjects() {
         for (int i = projectTableModel.getRowCount() - 1; i >= 0; i--) {
             projectTableModel.removeRow(i);
         }
-
         try {
-            ArrayList<Project> pList = db.getAllProjects();
+            ArrayList<Project> pList = db.getAllProjects(Database.GETALLPROJECTS_ORDERBYID_ASC);
             for (Project l : pList) {
-                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(), l.getIsCompleted(), l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),String.valueOf(l.getIsCompleted()),String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -256,6 +291,7 @@ public class PJMS extends javax.swing.JFrame {
         jButton14 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         mainDlg_tbProjects = new javax.swing.JTable();
+        jSeparator6 = new javax.swing.JSeparator();
         mainDlg_miAccount = new javax.swing.JMenuBar();
         jMenu7 = new javax.swing.JMenu();
         mainDlg_menuAccount = new javax.swing.JMenu();
@@ -325,8 +361,10 @@ public class PJMS extends javax.swing.JFrame {
 
         jPanel9.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
+        jLabel29.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel29.setText("Task Reminder:");
 
+        mainDlg_tbRemenderTask.setAutoCreateRowSorter(true);
         mainDlg_tbRemenderTask.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null, null, null, null, null},
@@ -384,7 +422,7 @@ public class PJMS extends javax.swing.JFrame {
                         .addComponent(jLabel35)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 451, Short.MAX_VALUE))
+                        .addGap(0, 412, Short.MAX_VALUE))
                     .addComponent(jScrollPane11, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
@@ -417,6 +455,7 @@ public class PJMS extends javax.swing.JFrame {
             }
         });
 
+        mainDlg_tbProjects.setAutoCreateRowSorter(true);
         mainDlg_tbProjects.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null, null, null, null, null, null},
@@ -478,18 +517,19 @@ public class PJMS extends javax.swing.JFrame {
         mainDlg.getContentPane().setLayout(mainDlgLayout);
         mainDlgLayout.setHorizontalGroup(
             mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainDlgLayout.createSequentialGroup()
+            .addGroup(mainDlgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, mainDlgLayout.createSequentialGroup()
+                .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel9, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(mainDlgLayout.createSequentialGroup()
                         .addComponent(jLabel30)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(mainDlg_btnAddProject)
                         .addGap(18, 18, 18)
                         .addComponent(jButton14)
                         .addGap(28, 28, 28))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(jScrollPane1)
+                    .addComponent(jSeparator6))
                 .addContainerGap())
         );
         mainDlgLayout.setVerticalGroup(
@@ -500,14 +540,16 @@ public class PJMS extends javax.swing.JFrame {
                     .addGroup(mainDlgLayout.createSequentialGroup()
                         .addComponent(jLabel30)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainDlgLayout.createSequentialGroup()
+                    .addGroup(mainDlgLayout.createSequentialGroup()
                         .addGap(0, 2, Short.MAX_VALUE)
                         .addGroup(mainDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(mainDlg_btnAddProject)
                             .addComponent(jButton14))
                         .addGap(18, 18, 18)))
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(42, 42, 42)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -1250,7 +1292,7 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_registerDlg_tfPassFocusGained
 
     private void registerDlg_tfPassconfirmFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfPassconfirmFocusGained
-        registerDlg_tfPassconfirm.selectAll();
+        registerDlg_tfPassconfirm.selectAll();        
     }//GEN-LAST:event_registerDlg_tfPassconfirmFocusGained
 
     private void registerDlg_tfNameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfNameFocusGained
@@ -1426,6 +1468,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
+    private javax.swing.JSeparator jSeparator6;
     private javax.swing.JButton loginDlg_btnLogin;
     private javax.swing.JButton loginDlg_btnRegister;
     private javax.swing.JPasswordField loginDlg_pwtfPassword;
