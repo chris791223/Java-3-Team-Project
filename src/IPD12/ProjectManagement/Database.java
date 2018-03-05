@@ -364,7 +364,7 @@ public class Database {
    // For Jerry
    ////////////////////////////////////////////////////////////////////
     public ArrayList<Task> getAllTasks() throws SQLException{
-        String sql = "SELECT * FROM tasks";
+        String sql = "SELECT * FROM tasks where isDeleted= '0'";
         ArrayList<Task> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -387,7 +387,7 @@ public class Database {
     }
     
     public ArrayList<Task> getTasksById(long id) throws SQLException{
-        String sql = "SELECT * FROM tasks where projectId=" + id;
+        String sql = "SELECT * FROM tasks where isDeleted= '0' and projectId=" + id;
         ArrayList<Task> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -430,7 +430,7 @@ public class Database {
         return "";
     }
     public ArrayList<Project> getAllProjects() throws SQLException {        
-        String sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,count(t.id) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id;";
+        String sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,count(t.id) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id";
         ArrayList<Project> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -475,6 +475,16 @@ public class Database {
             stmt.setString(2, user.getAbility());
             stmt.setString(3, user.getPassword());
             stmt.setLong(4, user.getId());
+            stmt.executeUpdate();
+        }
+    }
+    public void AddUser(User user) throws SQLException {
+        String sql = "INSERT INTO users (name, email, ability, password) VALUES (?, ?, ?, ?)";       
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getAbility());
+            stmt.setString(4, user.getPassword());            
             stmt.executeUpdate();
         }
     }

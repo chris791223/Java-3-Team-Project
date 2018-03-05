@@ -15,6 +15,7 @@ import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -83,6 +84,11 @@ public class ProjectDetails extends javax.swing.JFrame {
     public ProjectDetails(JDialog parentDlg, long projectId) {
         this(projectId);
         this.parentDlg = parentDlg;
+    }
+    private PJMS parentJFrame;
+    public ProjectDetails(PJMS parentFrame, long projectId) {
+        this(projectId);
+        this.parentJFrame = parentFrame;
     }
 
     public void loadProjectInfo() {
@@ -1119,7 +1125,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadProjectSummary();
                 // reload team list
                 loadTeamMember();
-
+                parentJFrame.loadAllProjects();
+                //parentJFrame.loadTasksById(currentProjectId);
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1155,6 +1162,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadProjectSummary();
                 // reload team list
                 loadTeamMember();
+                parentJFrame.loadAllProjects(); 
+                //parentJFrame.loadAllTasks();
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1275,7 +1284,8 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btTeamSaveActionPerformed
 
     private void pjd_btGoBackToPjListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btGoBackToPjListActionPerformed
-        parentDlg.setVisible(true);
+        //parentDlg.setVisible(true);
+        parentJFrame.showMainDlg();
         this.dispose();
     }//GEN-LAST:event_pjd_btGoBackToPjListActionPerformed
 
@@ -1352,8 +1362,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                 Task task = new Task(0, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
 
-                loadTaskList();
+                loadTaskList();                
                 dlgTaskEditor.setVisible(false);
+                parentJFrame.loadAllProjects();
+                parentJFrame.loadTasksById(currentProjectId);
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1365,8 +1377,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                 Task task = new Task(currentTaskId, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
 
-                loadTaskList();
+                loadTaskList();                
                 dlgTaskEditor.setVisible(false);
+                //parentJFrame.loadAllProjects();
+                parentJFrame.loadTasksById(currentProjectId);
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1547,6 +1561,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 try {
                     db.changeDeleteFlagStatus(currentTaskId, true);
                     loadTaskList();
+                    parentJFrame.loadAllProjects();
+                    parentJFrame.loadTasksById(currentProjectId);
                 }
                 catch (SQLException ex) {
                     ex.printStackTrace();

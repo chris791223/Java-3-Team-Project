@@ -29,21 +29,24 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class PJMS extends javax.swing.JFrame {
-
-    //private final Pattern EMAIL_PATTERN = Pattern.compile(".+@.+");
+   
     private final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
     private DefaultTableModel projectTableModel = null;
     private DefaultTableModel taskTableModel = null;
     private final int REMINDER_DAY = 2;
-    private final int REMINDER_COLOR_RED = 1;
-    //private final int REMINDER_COLOR_BLUE = 2;
+    private final int REMINDER_COLOR_RED = 1;    
     private final int REMINDER_COLOR_YELLOW = 3;
-    private int[] colorFlag;
-    //private int loginInputFlag=1;
+    private final int OPEN_REGISTER_DLG=1;
+    private final int OPEN_SHOWUSER_DLG=2;
+    private final int OPEN_USEREDIT_DLG=3;
+    private int[] colorFlag;   
     private Database db;
     public static User currentUser = null;
     private boolean editFlag = false;
 
+    public void showMainDlg(){
+        mainDlg.setVisible(true);
+    }
     class ReminderRenderer implements TableCellRenderer {
 
         public final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
@@ -64,7 +67,6 @@ public class PJMS extends javax.swing.JFrame {
                 }
             }
             foreground = Color.BLUE;
-
             renderer.setBackground(background);
             renderer.setForeground(foreground);
             return renderer;
@@ -124,7 +126,7 @@ public class PJMS extends javax.swing.JFrame {
         }
     }
 
-    private void loadTasksById(int id) {
+    public void loadTasksById(long id) {
         for (int i = taskTableModel.getRowCount() - 1; i >= 0; i--) {
             taskTableModel.removeRow(i);
         }
@@ -140,7 +142,7 @@ public class PJMS extends javax.swing.JFrame {
         }
     }
 
-    private void loadAllTasks() {
+    public void loadAllTasks() {
         for (int i = taskTableModel.getRowCount() - 1; i >= 0; i--) {
             taskTableModel.removeRow(i);
         }
@@ -169,7 +171,7 @@ public class PJMS extends javax.swing.JFrame {
         mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
     }
 
-    private void loadAllProjects() {
+    public void loadAllProjects() {
         for (int i = projectTableModel.getRowCount() - 1; i >= 0; i--) {
             projectTableModel.removeRow(i);
         }
@@ -269,12 +271,28 @@ public class PJMS extends javax.swing.JFrame {
         userDlg_tfAbility = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         userDlg_btnEdit = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        userDlg_btnCancel = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
         userDlg_tfPass = new javax.swing.JPasswordField();
         jLabel9 = new javax.swing.JLabel();
         userDlg_tfPassconfirm = new javax.swing.JPasswordField();
         jSeparator3 = new javax.swing.JSeparator();
+        registerDlg = new javax.swing.JDialog();
+        userDlg_lbHi1 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        registerDlg_tfEmail = new javax.swing.JTextField();
+        jLabel13 = new javax.swing.JLabel();
+        registerDlg_tfAbility = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
+        registerDlg_btnSave = new javax.swing.JButton();
+        registerDlg_btnCancel = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JSeparator();
+        registerDlg_tfPass = new javax.swing.JPasswordField();
+        jLabel15 = new javax.swing.JLabel();
+        registerDlg_tfPassconfirm = new javax.swing.JPasswordField();
+        jSeparator5 = new javax.swing.JSeparator();
+        jLabel16 = new javax.swing.JLabel();
+        registerDlg_tfName = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         loginDlg_tfUserID = new javax.swing.JTextField();
@@ -283,6 +301,7 @@ public class PJMS extends javax.swing.JFrame {
         jButton6 = new javax.swing.JButton();
         loginDlg_pwtfPassword = new javax.swing.JPasswordField();
         jSeparator1 = new javax.swing.JSeparator();
+        loginDlg_btnRegister = new javax.swing.JButton();
 
         mainDlg_pmShowDetail.setText("Show Detail");
         mainDlg_pmShowDetail.addActionListener(new java.awt.event.ActionListener() {
@@ -529,10 +548,10 @@ public class PJMS extends javax.swing.JFrame {
             }
         });
 
-        jButton4.setText("Cancel");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        userDlg_btnCancel.setText("Cancel");
+        userDlg_btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                userDlg_btnCancelActionPerformed(evt);
             }
         });
 
@@ -559,12 +578,13 @@ public class PJMS extends javax.swing.JFrame {
         userDlgLayout.setHorizontalGroup(
             userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSeparator2)
+            .addComponent(jSeparator3)
             .addGroup(userDlgLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, userDlgLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton4)
+                        .addComponent(userDlg_btnCancel)
                         .addGap(18, 18, 18)
                         .addComponent(userDlg_btnEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(userDlgLayout.createSequentialGroup()
@@ -582,13 +602,12 @@ public class PJMS extends javax.swing.JFrame {
                             .addComponent(jLabel8)
                             .addComponent(jLabel9))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(userDlg_tfEmail)
-                            .addComponent(userDlg_tfPassconfirm, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
-                            .addComponent(userDlg_tfAbility)
-                            .addComponent(userDlg_tfPass, javax.swing.GroupLayout.Alignment.LEADING))))
+                        .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(userDlg_tfPassconfirm)
+                            .addComponent(userDlg_tfEmail, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(userDlg_tfAbility, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(userDlg_tfPass, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE))))
                 .addContainerGap())
-            .addComponent(jSeparator3)
         );
         userDlgLayout.setVerticalGroup(
             userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -601,7 +620,7 @@ public class PJMS extends javax.swing.JFrame {
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(userDlg_tfID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(28, 28, 28)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(userDlg_tfEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -613,7 +632,7 @@ public class PJMS extends javax.swing.JFrame {
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
                     .addComponent(userDlg_tfPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(userDlg_tfPassconfirm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -621,14 +640,150 @@ public class PJMS extends javax.swing.JFrame {
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(userDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton4)
+                    .addComponent(userDlg_btnCancel)
                     .addComponent(userDlg_btnEdit))
+                .addGap(34, 34, 34))
+        );
+
+        registerDlg.setTitle("Register account");
+        registerDlg.setModal(true);
+
+        userDlg_lbHi1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
+        userDlg_lbHi1.setText("Hi!");
+
+        jLabel12.setText("Email (*):");
+
+        registerDlg_tfEmail.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                registerDlg_tfEmailFocusGained(evt);
+            }
+        });
+
+        jLabel13.setText("Ability:");
+
+        registerDlg_tfAbility.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                registerDlg_tfAbilityFocusGained(evt);
+            }
+        });
+
+        jLabel14.setText("Password(*):");
+
+        registerDlg_btnSave.setText("Save");
+        registerDlg_btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                registerDlg_btnSaveActionPerformed(evt);
+            }
+        });
+
+        registerDlg_btnCancel.setText("Cancel");
+        registerDlg_btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                registerDlg_btnCancelActionPerformed(evt);
+            }
+        });
+
+        registerDlg_tfPass.setText("jPasswordField1");
+        registerDlg_tfPass.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                registerDlg_tfPassFocusGained(evt);
+            }
+        });
+
+        jLabel15.setText("Confirm:");
+
+        registerDlg_tfPassconfirm.setText("jPasswordField1");
+        registerDlg_tfPassconfirm.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                registerDlg_tfPassconfirmFocusGained(evt);
+            }
+        });
+
+        jLabel16.setText("Name(*):");
+
+        registerDlg_tfName.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                registerDlg_tfNameFocusGained(evt);
+            }
+        });
+
+        javax.swing.GroupLayout registerDlgLayout = new javax.swing.GroupLayout(registerDlg.getContentPane());
+        registerDlg.getContentPane().setLayout(registerDlgLayout);
+        registerDlgLayout.setHorizontalGroup(
+            registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSeparator4)
+            .addComponent(jSeparator5)
+            .addGroup(registerDlgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(registerDlgLayout.createSequentialGroup()
+                        .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel12)
+                            .addComponent(jLabel13)
+                            .addComponent(jLabel14)
+                            .addComponent(jLabel15)
+                            .addComponent(jLabel16))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(registerDlg_tfName)
+                            .addComponent(registerDlg_tfPassconfirm)
+                            .addComponent(registerDlg_tfEmail, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(registerDlg_tfAbility, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(registerDlg_tfPass, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)))
+                    .addGroup(registerDlgLayout.createSequentialGroup()
+                        .addComponent(userDlg_lbHi1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, registerDlgLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(registerDlg_btnCancel)
+                        .addGap(12, 12, 12)
+                        .addComponent(registerDlg_btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
+        );
+        registerDlgLayout.setVerticalGroup(
+            registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(registerDlgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(userDlg_lbHi1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel16)
+                    .addComponent(registerDlg_tfName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(registerDlg_tfEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(24, 24, 24)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(registerDlg_tfAbility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(28, 28, 28)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(registerDlg_tfPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel15)
+                    .addComponent(registerDlg_tfPassconfirm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(15, 15, 15)
+                .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(registerDlgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(registerDlg_btnCancel)
+                    .addComponent(registerDlg_btnSave))
+                .addGap(29, 29, 29))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login");
         setName("frmLogin"); // NOI18N
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                formFocusGained(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel1.setText("Password:");
@@ -685,6 +840,14 @@ public class PJMS extends javax.swing.JFrame {
             }
         });
 
+        loginDlg_btnRegister.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
+        loginDlg_btnRegister.setText("Register");
+        loginDlg_btnRegister.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loginDlg_btnRegisterActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -694,7 +857,9 @@ public class PJMS extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(205, 205, 205)
+                        .addGap(90, 90, 90)
+                        .addComponent(loginDlg_btnRegister)
+                        .addGap(14, 14, 14)
                         .addComponent(jButton6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
                         .addComponent(loginDlg_btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -727,7 +892,8 @@ public class PJMS extends javax.swing.JFrame {
                 .addGap(41, 41, 41)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(loginDlg_btnLogin)
-                    .addComponent(jButton6))
+                    .addComponent(jButton6)
+                    .addComponent(loginDlg_btnRegister))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -859,72 +1025,7 @@ public class PJMS extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_loginDlg_btnLoginKeyPressed
-    private void showProjectEditDlg() {
-        /*
-        int rowindex = mainDlg_tbProjects.getSelectedRow();
-        if (rowindex != -1) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
-            Project p = null;
-            try {
-                Object ido = projectTableModel.getValueAt(rowindex, 0);
-                Object nameo = projectTableModel.getValueAt(rowindex, 1);
-                Object descriptiono = projectTableModel.getValueAt(rowindex, 2);
-                Object personInChargeo = projectTableModel.getValueAt(rowindex, 3);
-                Object isCompletedo = projectTableModel.getValueAt(rowindex, 6);
-
-                int id = 0;
-                String name = "";
-                String description = "";
-                int personInCharge = 0;
-                boolean isCompleted = true;
-                if (ido != null) {
-                    id = Integer.parseInt(ido.toString());
-                }
-                if (nameo != null) {
-                    name = nameo.toString();
-                }
-                if (descriptiono != null) {
-                    description = descriptiono.toString();
-                }
-                if (personInChargeo != null) {
-                    personInCharge = Integer.parseInt(personInChargeo.toString());
-                }
-                if (isCompletedo != null) {
-                    isCompleted = Boolean.parseBoolean(isCompletedo.toString());
-                }
-                Object sdpo = projectTableModel.getValueAt(rowindex, 7);
-                Object edpo = projectTableModel.getValueAt(rowindex, 8);
-                Object sdao = projectTableModel.getValueAt(rowindex, 9);
-                Object edao = projectTableModel.getValueAt(rowindex, 10);
-                Date sdp = null;
-                Date sda = null;
-                Date edp = null;
-                Date eda = null;
-                if (sdpo != null) {
-                    sdp = sdf.parse(sdpo.toString());
-                }
-                if (edpo != null) {
-                    edp = sdf.parse(edpo.toString());
-                }
-                if (sdao != null) {
-                    sda = sdf.parse(sdao.toString());
-                }
-                if (edao != null) {
-                    eda = sdf.parse(edao.toString());
-                }
-                p = new Project(id, name, description, sdp, edp, sda, eda, personInCharge, isCompleted);
-                new ProjectDetails(mainDlg, id).setVisible(true);
-                mainDlg.setVisible(false);
-            } catch (ParseException ex) {
-                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            JOptionPane.showMessageDialog(null,
-                    "Please select a project!\n",
-                    "Control tutorial!",
-                    JOptionPane.INFORMATION_MESSAGE);
-        }
-        */
+    private void showProjectEditDlg() {        
         int rowindex = mainDlg_tbProjects.getSelectedRow();
         if (rowindex != -1) {
             Object ido = projectTableModel.getValueAt(rowindex, 0);
@@ -932,7 +1033,8 @@ public class PJMS extends javax.swing.JFrame {
             if (ido != null) {
                 id = Integer.parseInt(ido.toString());
             }
-            new ProjectDetails(mainDlg, id).setVisible(true);
+            //new ProjectDetails(mainDlg, id).setVisible(true);
+            new ProjectDetails(this, id).setVisible(true);
             mainDlg.setVisible(false);
         } else {
             JOptionPane.showMessageDialog(null,
@@ -946,13 +1048,15 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void mainDlg_btnAddProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_btnAddProjectActionPerformed
-        new ProjectDetails(mainDlg, 0).setVisible(true);
+        new ProjectDetails(this, 0).setVisible(true);
         mainDlg.setVisible(false);
     }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
 
     private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
+        /*
         loadAllProjects();
         loadAllTasks();
+        */
     }//GEN-LAST:event_mainDlgWindowGainedFocus
 
     private void mainDlg_tbProjectsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMousePressed
@@ -998,6 +1102,7 @@ public class PJMS extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         mainDlg.dispose();
         this.setVisible(true);
+        this.requestFocusInWindow(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     private void disableUserDlgTextField() {
         userDlg_tfID.setEnabled(false);
@@ -1039,19 +1144,17 @@ public class PJMS extends javax.swing.JFrame {
         userDlg.setVisible(true);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void userDlg_btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userDlg_btnCancelActionPerformed
         editFlag = false;
         userDlg.dispose();
-    }//GEN-LAST:event_jButton4ActionPerformed
+    }//GEN-LAST:event_userDlg_btnCancelActionPerformed
 
     private void userDlg_btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userDlg_btnEditActionPerformed
         if (!editFlag) {
             editFlag = true;
             enableUserDlgTextField();
             userDlg_tfEmail.requestFocusInWindow();
-        } else if (validateUserInputInfo()) {
-            editFlag = false;
-            disableUserDlgTextField();
+        } else if (validateUserInputInfo()) {            
             String email = userDlg_tfEmail.getText();
             String ability = userDlg_tfAbility.getText();
             char[] password = userDlg_tfPass.getPassword();
@@ -1062,6 +1165,8 @@ public class PJMS extends javax.swing.JFrame {
                         "Your account has updated successfully!\n",
                         "Successfully!",
                         JOptionPane.INFORMATION_MESSAGE);
+                editFlag = false;
+                disableUserDlgTextField();
             } catch (SQLException ex) {
                 Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1083,6 +1188,132 @@ public class PJMS extends javax.swing.JFrame {
     private void userDlg_tfPassconfirmFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_userDlg_tfPassconfirmFocusGained
         userDlg_tfPassconfirm.selectAll();
     }//GEN-LAST:event_userDlg_tfPassconfirmFocusGained
+
+    private void loginDlg_btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginDlg_btnRegisterActionPerformed
+        registerDlg.pack();
+        registerDlg.setLocationRelativeTo(this);
+        registerDlg.setVisible(true);
+    }//GEN-LAST:event_loginDlg_btnRegisterActionPerformed
+
+    private void registerDlg_tfEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfEmailFocusGained
+        registerDlg_tfEmail.selectAll();
+    }//GEN-LAST:event_registerDlg_tfEmailFocusGained
+
+    private void registerDlg_tfAbilityFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfAbilityFocusGained
+        registerDlg_tfAbility.selectAll();
+    }//GEN-LAST:event_registerDlg_tfAbilityFocusGained
+    /*
+    private void disableRegisterDlgTextField(){
+        registerDlg_tfName.setEnabled(false);
+        registerDlg_tfEmail.setEnabled(false);
+        registerDlg_tfAbility.setEnabled(false);
+        registerDlg_tfPass.setEnabled(false);
+        registerDlg_tfPassconfirm.setEnabled(false);        
+    }
+    private void enableRegisterDlgTextField(){
+        registerDlg_tfName.setEnabled(true);
+        registerDlg_tfEmail.setEnabled(true);
+        registerDlg_tfAbility.setEnabled(true);
+        registerDlg_tfPass.setEnabled(true);
+        registerDlg_tfPassconfirm.setEnabled(true);
+    }
+    */
+    private void registerDlg_btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerDlg_btnSaveActionPerformed
+        if (validateRegisterInfo()) {  
+            String name = registerDlg_tfName.getText();
+            String email = registerDlg_tfEmail.getText();
+            String ability = registerDlg_tfAbility.getText();
+            char[] password = registerDlg_tfPass.getPassword();
+            User user = new User(1, name, email, ability, String.valueOf(password));
+            try {
+                db.AddUser(user);
+                long id = db.getUserIdByEmail(email);
+                registerDlg.dispose();
+                JOptionPane.showMessageDialog(null,
+                        "Your new account has been saved successfully!\n"+"Please remember your EmployeeID is "+id
+                        +".\nYou can use your ID or Email to login our system",
+                        "Successfully!",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_registerDlg_btnSaveActionPerformed
+
+    private void registerDlg_btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerDlg_btnCancelActionPerformed
+        registerDlg.dispose();
+        this.requestFocusInWindow(true);
+    }//GEN-LAST:event_registerDlg_btnCancelActionPerformed
+
+    private void registerDlg_tfPassFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfPassFocusGained
+         registerDlg_tfPass.selectAll();
+    }//GEN-LAST:event_registerDlg_tfPassFocusGained
+
+    private void registerDlg_tfPassconfirmFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfPassconfirmFocusGained
+        registerDlg_tfPassconfirm.selectAll();
+    }//GEN-LAST:event_registerDlg_tfPassconfirmFocusGained
+
+    private void registerDlg_tfNameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_registerDlg_tfNameFocusGained
+       registerDlg_tfName.selectAll();
+    }//GEN-LAST:event_registerDlg_tfNameFocusGained
+
+    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
+        loginDlg_tfUserID.requestFocusInWindow();
+    }//GEN-LAST:event_formFocusGained
+    private boolean validateRegisterInfo(){
+        String name = registerDlg_tfName.getText();
+        String email = registerDlg_tfEmail.getText();
+        char[] password = registerDlg_tfPass.getPassword();
+        char[] password2 = registerDlg_tfPassconfirm.getPassword();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Name cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfName.requestFocusInWindow();
+            return false;
+        }
+        if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Email cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfEmail.requestFocusInWindow();
+            return false;
+        } else if (!isInputEmail(email)) {
+            JOptionPane.showMessageDialog(null,
+                    "You enter a wrong email,please enter again!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfEmail.requestFocusInWindow();
+            return false;
+        }
+        if (password.length == 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Password cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfPass.requestFocusInWindow();
+            return false;
+        }
+        if (password2.length == 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Password cann't be empty!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfPassconfirm.requestFocusInWindow();
+            return false;
+        } else if (!isPasswordCorrect(password, password2)) {
+            JOptionPane.showMessageDialog(null,
+                    "Passwords are not match,please enter again!\n",
+                    "Enter wrong!",
+                    JOptionPane.ERROR_MESSAGE);
+            registerDlg_tfPass.requestFocusInWindow();
+            registerDlg_tfPassconfirm.setText("");
+            return false;
+        }
+        return true;
+    }
     private boolean validateUserInputInfo() {
         String email = userDlg_tfEmail.getText();
         char[] password = userDlg_tfPass.getPassword();
@@ -1166,9 +1397,13 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel30;
@@ -1189,7 +1424,10 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JButton loginDlg_btnLogin;
+    private javax.swing.JButton loginDlg_btnRegister;
     private javax.swing.JPasswordField loginDlg_pwtfPassword;
     private javax.swing.JTextField loginDlg_tfUserID;
     private javax.swing.JDialog mainDlg;
@@ -1200,9 +1438,19 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JMenuItem mainDlg_pmShowDetail;
     private javax.swing.JTable mainDlg_tbProjects;
     private javax.swing.JTable mainDlg_tbRemenderTask;
+    private javax.swing.JDialog registerDlg;
+    private javax.swing.JButton registerDlg_btnCancel;
+    private javax.swing.JButton registerDlg_btnSave;
+    private javax.swing.JTextField registerDlg_tfAbility;
+    private javax.swing.JTextField registerDlg_tfEmail;
+    private javax.swing.JTextField registerDlg_tfName;
+    private javax.swing.JPasswordField registerDlg_tfPass;
+    private javax.swing.JPasswordField registerDlg_tfPassconfirm;
     private javax.swing.JDialog userDlg;
+    private javax.swing.JButton userDlg_btnCancel;
     private javax.swing.JButton userDlg_btnEdit;
     private javax.swing.JLabel userDlg_lbHi;
+    private javax.swing.JLabel userDlg_lbHi1;
     private javax.swing.JTextField userDlg_tfAbility;
     private javax.swing.JTextField userDlg_tfEmail;
     private javax.swing.JTextField userDlg_tfID;

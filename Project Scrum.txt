@@ -92,4 +92,16 @@ Each member writes down answers to 3 questions:
  - Thinking about how to public our product.
 3. Need assistance / figure things out
  - Nothing special.
+ 
+ 2018/03/04 Jie Zhu
+1. Done since last scrum:
+ - Added registation function for user.
+ - Let users can edit their account.
+ - Optimized projects and tasks' list. They can refresh when every time projects and tasks are updated.
+ - Got knowledge of making our project into an .exe file.
+2. Plan until next Scrum
+ - Report.
+ - Report knowledge.
+3. Need assistance / figure things out
+ - Nothing special.
 
