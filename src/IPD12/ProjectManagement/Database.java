@@ -5,7 +5,6 @@
  */
 package IPD12.ProjectManagement;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -120,6 +119,37 @@ public class Database {
         }
 
         return list;
+    }
+    
+    public boolean checkIfHasUncompletedTaskByProjectId(long projectId) throws SQLException {
+
+        String sql = "SELECT * FROM tasks WHERE projectId = ? AND isDeleted = false AND isCompleted = false";
+     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return true;
+            } else 
+                return false;
+        }
+    }
+    
+    public boolean checkProjectIsCompleted(long projectId) throws SQLException {
+
+        String sql = "SELECT isCompleted FROM projects WHERE id = ?";
+        boolean isCompleted = true;
+     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                isCompleted = result.getBoolean("isCompleted");
+            }            
+            return isCompleted;
+        }
     }
 
     public Project getProjectById(long projectId) throws SQLException {
