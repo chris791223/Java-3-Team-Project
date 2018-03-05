@@ -81,3 +81,36 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
 - Figure out how the project list page refreshes after editing a project
 
+
+2018/03/03 Jie Zhu
+1. Done since last scrum:
+ - Use JTable component well now.
+ - Improved the main and login dialog function. They are now friendly used.
+ - Solved two trouble problems.
+2. Plan until next Scrum
+ - Create user account modual.Users can edit their account content.
+ - Thinking about how to public our product.
+3. Need assistance / figure things out
+ - Nothing special.
+ 
+ 2018/03/04 Jie Zhu
+1. Done since last scrum:
+ - Added registation function for user.
+ - Let users can edit their account.
+ - Optimized projects and tasks' list. They can refresh when every time projects and tasks are updated.
+ - Got knowledge of making our project into an .exe file.
+2. Plan until next Scrum
+ - Report.
+ - Report knowledge.
+3. Need assistance / figure things out
+ - Nothing special.
+
+ 2018/03/02 Jing Wang
+1. Done since last scrum:
+- Function improvement, added lots of condition check
+- Solved lots of bugs
+2. Plan until next Scrum
+- Add report 
+- Test Jie's part
+3. Need assistance / figure things out
+- Nothing special

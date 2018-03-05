@@ -5,7 +5,6 @@
  */
 package IPD12.ProjectManagement;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -121,7 +120,65 @@ public class Database {
 
         return list;
     }
+    
+    public boolean checkIfHasUncompletedTaskByProjectId(long projectId) throws SQLException {
 
+        String sql = "SELECT * FROM tasks WHERE projectId = ? AND isDeleted = false AND isCompleted = false";
+     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return true;
+            } else 
+                return false;
+        }
+    }
+    
+    public boolean checkProjectIsCompleted(long projectId) throws SQLException {
+
+        String sql = "SELECT isCompleted FROM projects WHERE id = ?";
+        boolean isCompleted = true;
+     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                isCompleted = result.getBoolean("isCompleted");
+            }            
+            return isCompleted;
+        }
+    }
+
+    public Project getProjectById(long projectId) throws SQLException {
+        String sql = "SELECT * FROM projects WHERE id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date startDatePlanned = result.getDate("startDatePlanned");
+                Date endDatePlanned = result.getDate("endDatePlanned");
+                Date startDateActual = result.getDate("startDateActual");
+                Date endDateActual = result.getDate("endDateActual");
+                long projectManager = result.getLong("projectManager");
+                boolean isCompleted = result.getBoolean("isCompleted");
+                
+                Project project = new Project(id, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, projectManager, isCompleted);
+                return project;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    
     public long addProject(Project project) throws SQLException {
         long id = 0;
         
@@ -131,33 +188,10 @@ public class Database {
             stmt.setString(1, project.getName());
             stmt.setString(2, project.getDescription());
 
-            if (project.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(project.getStartDatePlanned().getTime()));
-            }
-
-            if (project.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(project.getEndDatePlanned().getTime()));
-            }
-
-            if (project.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(project.getStartDateActual().getTime()));
-            }
-
-            if (project.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(project.getEndDateActual().getTime()));
-            }
+            stmt.setDate(3, GlobalProcess.formatSqlDate(project.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(project.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(project.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(project.getEndDateActual()));
 
             if (project.getProjectManager() == 0) {
                 stmt.setString(7, null);
@@ -189,34 +223,11 @@ public class Database {
             stmt.setString(1, project.getName());
             stmt.setString(2, project.getDescription());
 
-            if (project.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(project.getStartDatePlanned().getTime()));
-            }
-
-            if (project.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(project.getEndDatePlanned().getTime()));
-            }
-
-            if (project.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(project.getStartDateActual().getTime()));
-            }
-
-            if (project.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(project.getEndDateActual().getTime()));
-            }
-
+            stmt.setDate(3, GlobalProcess.formatSqlDate(project.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(project.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(project.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(project.getEndDateActual()));
+ 
             if (project.getProjectManager() == 0) {
                 stmt.setString(7, null);
             }
@@ -320,33 +331,10 @@ public class Database {
             stmt.setString(2, task.getName());
             stmt.setString(3, task.getDescription());
 
-            if (task.getStartDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(task.getStartDatePlanned().getTime()));
-            }
-
-            if (task.getEndDatePlanned() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(task.getEndDatePlanned().getTime()));
-            }
-
-            if (task.getStartDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(task.getStartDateActual().getTime()));
-            }
-
-            if (task.getEndDateActual() == null) {
-                stmt.setDate(7, null);
-            }
-            else {
-                stmt.setDate(7, new java.sql.Date(task.getEndDateActual().getTime()));
-            }
+            stmt.setDate(4, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getStartDateActual()));
+            stmt.setDate(7, GlobalProcess.formatSqlDate(task.getEndDateActual()));
 
             if (task.getPersonInCharge()== 0) {
                 stmt.setString(8, null);
@@ -371,33 +359,10 @@ public class Database {
             stmt.setString(1, task.getName());
             stmt.setString(2, task.getDescription());
 
-            if (task.getStartDatePlanned() == null) {
-                stmt.setDate(3, null);
-            }
-            else {
-                stmt.setDate(3, new java.sql.Date(task.getStartDatePlanned().getTime()));
-            }
-
-            if (task.getEndDatePlanned() == null) {
-                stmt.setDate(4, null);
-            }
-            else {
-                stmt.setDate(4, new java.sql.Date(task.getEndDatePlanned().getTime()));
-            }
-
-            if (task.getStartDateActual() == null) {
-                stmt.setDate(5, null);
-            }
-            else {
-                stmt.setDate(5, new java.sql.Date(task.getStartDateActual().getTime()));
-            }
-
-            if (task.getEndDateActual() == null) {
-                stmt.setDate(6, null);
-            }
-            else {
-                stmt.setDate(6, new java.sql.Date(task.getEndDateActual().getTime()));
-            }
+            stmt.setDate(3, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
+            stmt.setDate(4, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getStartDateActual()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getEndDateActual()));
 
             if (task.getPersonInCharge()== 0) {
                 stmt.setString(7, null);
@@ -424,90 +389,12 @@ public class Database {
     }
     
     
-    /*
-    public void deleteTeambyProjectId(long id) throws SQLException {
-        String sql = "DELETE FROM teams WHERE projectId = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            stmt.executeUpdate();
-        }
-    }
-    */
-    /*
-    public Car getCarById(long id) throws SQLException{
-        String sql = "SELECT * FROM cars WHERE id = ?";
-        
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            ResultSet result = stmt.executeQuery();
-            if (result.next()) {
-                return new Car(result.getLong("id"), result.getString("makeModel"), result.getBigDecimal("engineSize"), Car.FuelType.valueOf(result.getString("fuelType")));
-            } else {
-                return null;
-            }
-        }
-    }
    
-    public ArrayList<Car> getAllCars() throws SQLException {
-        String sql = "SELECT * FROM cars";
-        ArrayList<Car> list = new ArrayList<>();
-        
-        try (Statement stmt = conn.createStatement()) {
-            ResultSet result = stmt.executeQuery(sql);
-            while (result.next()) {
-                long id = result.getLong("id");
-                String makeModel = result.getString("makeModel");
-                BigDecimal engineSize = result.getBigDecimal("engineSize");
-                Car.FuelType fuelType = Car.FuelType.valueOf(result.getString("fuelType"));
-                
-                Car car = new Car(id, makeModel, engineSize, fuelType);
-                list.add(car);
-            }
-        }
-        return list;
-    }
-    
-    public void addCar(Car car) throws SQLException {
-        String sql = "INSERT INTO cars (makeModel, engineSize, fuelType) VALUES(?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, car.getMakeModel());
-            //stmt.setDouble(2, 2.4);
-            stmt.setDouble(2, car.getEngineSize().doubleValue());
-            stmt.setString(3, car.getFuelType().toString());
-            
-            stmt.executeUpdate();
-        } 
-    }
-    
-    
-    public void updateCar(Car car) throws SQLException {
-        String sql = "UPDATE cars SET makeModel = ?, engineSize = ?, fuelType = ? WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, car.getMakeModel());
-            stmt.setDouble(2, car.getEngineSize().doubleValue());
-            stmt.setString(3, car.getFuelType().toString());
-            stmt.setLong(4, car.getId());
-            
-            stmt.executeUpdate();
-        }
-    }
-    
-    public void deleteCar(long id) throws SQLException {
-        String sql = "DELETE FROM cars WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            
-            stmt.executeUpdate();
-        }
-    }
- */   
     
    // For Jerry
    ////////////////////////////////////////////////////////////////////
     public ArrayList<Task> getAllTasks() throws SQLException{
-        String sql = "SELECT * FROM tasks";
+        String sql = "SELECT * FROM tasks where isDeleted= '0'";
         ArrayList<Task> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -530,7 +417,7 @@ public class Database {
     }
     
     public ArrayList<Task> getTasksById(long id) throws SQLException{
-        String sql = "SELECT * FROM tasks where projectId=" + id;
+        String sql = "SELECT * FROM tasks where isDeleted= '0' and projectId=" + id;
         ArrayList<Task> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -551,7 +438,18 @@ public class Database {
         }         
         return list;
     }
-    public String getUserNameById(int id) throws SQLException{
+    public long getUserIdByEmail(String email) throws SQLException{
+        String sql = "SELECT id FROM users WHERE email = ?" ;                
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getLong("id");
+            }
+        }
+        return -1;
+    }
+    public String getUserNameById(long id) throws SQLException{
         String sql = "SELECT name FROM users WHERE id =" + id;                
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();
@@ -562,7 +460,7 @@ public class Database {
         return "";
     }
     public ArrayList<Project> getAllProjects() throws SQLException {        
-        String sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,count(t.id) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id;";
+        String sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,count(t.id) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id";
         ArrayList<Project> list = new ArrayList<>();     
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet result = stmt.executeQuery();            
@@ -585,6 +483,41 @@ public class Database {
         return list;
     }
     
+    public User getUserById(long id) throws SQLException {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {                
+                return new User(result.getLong("id"), result.getString("name"), result.getString("email"),result.getString("ability"),result.getString("password"));
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    
+    public void updateUser(User user) throws SQLException {
+        String sql = "UPDATE users SET email=?, ability=? ,password = ? WHERE id= ?";
+        //System.out.println(user.getPassword());
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getAbility());
+            stmt.setString(3, user.getPassword());
+            stmt.setLong(4, user.getId());
+            stmt.executeUpdate();
+        }
+    }
+    public void AddUser(User user) throws SQLException {
+        String sql = "INSERT INTO users (name, email, ability, password) VALUES (?, ?, ?, ?)";       
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getAbility());
+            stmt.setString(4, user.getPassword());            
+            stmt.executeUpdate();
+        }
+    }
                 
 
     // For Jerry
