@@ -115,3 +115,13 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
  - Nothing special.
 
+
+ 2018/03/02 Jing Wang
+1. Done since last scrum:
+- Function improvement, added lots of condition check
+- Solved lots of bugs
+2. Plan until next Scrum
+- Add report 
+- Test Jie's part
+3. Need assistance / figure things out
+- Nothing special
