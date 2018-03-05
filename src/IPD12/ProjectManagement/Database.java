@@ -482,6 +482,41 @@ public class Database {
         }         
         return list;
     }
+    public final static int GETALLPROJECTS_ORDERBYID_ASC=1;
+    public final static int GETALLPROJECTS_ORDERBYSTARTDATE_ASC=2;
+    public final static int GETALLPROJECTS_ORDERBYSTARTDATE_DESC=3;
+    public ArrayList<Project> getAllProjects(int controlCode) throws SQLException {  
+        String sql = "";
+        if(controlCode==GETALLPROJECTS_ORDERBYID_ASC){
+            sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,(select count(id) from tasks where projectid = p.id and isdeleted = false) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id";
+        }
+        if(controlCode==GETALLPROJECTS_ORDERBYSTARTDATE_ASC){
+            sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,(select count(id) from tasks where projectid = p.id and isdeleted = false) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id order by p.startDatePlanned asc";
+        }
+        if(controlCode==GETALLPROJECTS_ORDERBYSTARTDATE_DESC){
+            sql = "SELECT p.id as id,p.name as name,p.description as description,p.startDatePlanned as startDatePlanned,p.endDatePlanned as endDatePlanned,p.startDateActual as startDateActual, p.endDateActual as endDateActual, p.projectManager as PM,p.isCompleted as status,(select count(id) from tasks where projectid = p.id and isdeleted = false) as tasknums FROM projects p left join tasks t  on p.id=t.projectId group by p.id order by p.startDatePlanned desc";
+        }
+        ArrayList<Project> list = new ArrayList<>();     
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet result = stmt.executeQuery();            
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date sdp = result.getDate("startDatePlanned");
+                Date edp = result.getDate("endDatePlanned");
+                Date sda = result.getDate("startDateActual");
+                Date eda = result.getDate("endDateActual");
+                int PMID = result.getInt("PM");
+                String PMName = getUserNameById(PMID);
+                boolean status = result.getBoolean("status");
+                int tasknums = result.getInt("tasknums");                
+                Project p = new Project(id, name,description,sdp,edp,sda,eda,status,PMID,PMName,tasknums);
+                list.add(p);
+            }
+        }         
+        return list;
+    }
     
     public User getUserById(long id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ?";

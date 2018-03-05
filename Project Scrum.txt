@@ -105,3 +105,13 @@ Each member writes down answers to 3 questions:
 3. Need assistance / figure things out
  - Nothing special.
 
+ 2018/03/05 Jie Zhu
+1. Done since last scrum:
+ - Have known how to export to a pdf report. 
+ - Got knowledge of making our project into an .exe file.
+2. Plan until next Scrum
+ - Improve load projects list.
+ - Word on Report
+3. Need assistance / figure things out
+ - Nothing special.
+
