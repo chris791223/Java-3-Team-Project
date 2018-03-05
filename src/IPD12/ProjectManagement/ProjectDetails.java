@@ -312,6 +312,10 @@ public class ProjectDetails extends javax.swing.JFrame {
         popMenuTaskEdit = new javax.swing.JPopupMenu();
         popMiEdit = new javax.swing.JMenuItem();
         popMiDelete = new javax.swing.JMenuItem();
+        dlgProjectChooser = new javax.swing.JDialog();
+        dlgProjectChooser_lblChooseProject = new javax.swing.JLabel();
+        dlgProjectChooser_cbProject = new javax.swing.JComboBox<>();
+        dlgProjectChooser_btUpdate = new javax.swing.JButton();
         pjd_lblTitle = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
@@ -356,15 +360,16 @@ public class ProjectDetails extends javax.swing.JFrame {
         pjd_btTeamCancel = new javax.swing.JButton();
         pjd_btGoBackToPjList = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
-        MenuProject = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
-        MenuTask = new javax.swing.JMenu();
-        MiNewTask = new javax.swing.JMenuItem();
-        MiEditTask = new javax.swing.JMenuItem();
-        MiDeleteTask = new javax.swing.JMenuItem();
-        MenuExit = new javax.swing.JMenu();
-        MiBackToPrevious = new javax.swing.JMenuItem();
-        MiExit = new javax.swing.JMenuItem();
+        menuProject = new javax.swing.JMenu();
+        miNewProject = new javax.swing.JMenuItem();
+        miEditProject = new javax.swing.JMenuItem();
+        menuTask = new javax.swing.JMenu();
+        miNewTask = new javax.swing.JMenuItem();
+        miEditTask = new javax.swing.JMenuItem();
+        miDeleteTask = new javax.swing.JMenuItem();
+        menuExit = new javax.swing.JMenu();
+        miBackToPrevious = new javax.swing.JMenuItem();
+        miExit = new javax.swing.JMenuItem();
 
         dlgTaskEditor.setTitle("Task Editor");
         dlgTaskEditor.setModal(true);
@@ -614,6 +619,39 @@ public class ProjectDetails extends javax.swing.JFrame {
         });
         popMenuTaskEdit.add(popMiDelete);
 
+        dlgProjectChooser_lblChooseProject.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        dlgProjectChooser_lblChooseProject.setText("Choose Project ...");
+
+        dlgProjectChooser_cbProject.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        dlgProjectChooser_btUpdate.setText("Update");
+
+        javax.swing.GroupLayout dlgProjectChooserLayout = new javax.swing.GroupLayout(dlgProjectChooser.getContentPane());
+        dlgProjectChooser.getContentPane().setLayout(dlgProjectChooserLayout);
+        dlgProjectChooserLayout.setHorizontalGroup(
+            dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dlgProjectChooserLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dlgProjectChooser_lblChooseProject)
+                    .addGroup(dlgProjectChooserLayout.createSequentialGroup()
+                        .addComponent(dlgProjectChooser_cbProject, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(29, 29, 29)
+                        .addComponent(dlgProjectChooser_btUpdate)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        dlgProjectChooserLayout.setVerticalGroup(
+            dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dlgProjectChooserLayout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(dlgProjectChooser_lblChooseProject)
+                .addGap(18, 18, 18)
+                .addGroup(dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(dlgProjectChooser_cbProject, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dlgProjectChooser_btUpdate))
+                .addContainerGap(26, Short.MAX_VALUE))
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Project Information Maintenance");
         setName("frmProjectDetails"); // NOI18N
@@ -814,6 +852,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
+        pjd_tbTaskList.setAutoCreateRowSorter(true);
         pjd_tbTaskList.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -876,7 +915,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
@@ -1022,65 +1061,73 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
         });
 
-        MenuProject.setText("Project");
+        menuProject.setText("Project");
 
-        jMenuItem1.setText("New Project ...");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        miNewProject.setText("New Project ...");
+        miNewProject.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+                miNewProjectActionPerformed(evt);
             }
         });
-        MenuProject.add(jMenuItem1);
+        menuProject.add(miNewProject);
 
-        jMenuBar1.add(MenuProject);
-
-        MenuTask.setText("Task");
-
-        MiNewTask.setText("New Task ...");
-        MiNewTask.addActionListener(new java.awt.event.ActionListener() {
+        miEditProject.setText("Edit Project ...");
+        miEditProject.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MiNewTaskActionPerformed(evt);
+                miEditProjectActionPerformed(evt);
             }
         });
-        MenuTask.add(MiNewTask);
+        menuProject.add(miEditProject);
 
-        MiEditTask.setText("Edit Task ...");
-        MiEditTask.addActionListener(new java.awt.event.ActionListener() {
+        jMenuBar1.add(menuProject);
+
+        menuTask.setText("Task");
+
+        miNewTask.setText("New Task ...");
+        miNewTask.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MiEditTaskActionPerformed(evt);
+                miNewTaskActionPerformed(evt);
             }
         });
-        MenuTask.add(MiEditTask);
+        menuTask.add(miNewTask);
 
-        MiDeleteTask.setText("Delete Task ...");
-        MiDeleteTask.addActionListener(new java.awt.event.ActionListener() {
+        miEditTask.setText("Edit Task ...");
+        miEditTask.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MiDeleteTaskActionPerformed(evt);
+                miEditTaskActionPerformed(evt);
             }
         });
-        MenuTask.add(MiDeleteTask);
+        menuTask.add(miEditTask);
 
-        jMenuBar1.add(MenuTask);
-
-        MenuExit.setText("Exit");
-
-        MiBackToPrevious.setText("Back to Previous ...");
-        MiBackToPrevious.addActionListener(new java.awt.event.ActionListener() {
+        miDeleteTask.setText("Delete Task ...");
+        miDeleteTask.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MiBackToPreviousActionPerformed(evt);
+                miDeleteTaskActionPerformed(evt);
             }
         });
-        MenuExit.add(MiBackToPrevious);
+        menuTask.add(miDeleteTask);
 
-        MiExit.setText("Exit System ...");
-        MiExit.addActionListener(new java.awt.event.ActionListener() {
+        jMenuBar1.add(menuTask);
+
+        menuExit.setText("Exit");
+
+        miBackToPrevious.setText("Back to Previous ...");
+        miBackToPrevious.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MiExitActionPerformed(evt);
+                miBackToPreviousActionPerformed(evt);
             }
         });
-        MenuExit.add(MiExit);
+        menuExit.add(miBackToPrevious);
 
-        jMenuBar1.add(MenuExit);
+        miExit.setText("Exit System ...");
+        miExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miExitActionPerformed(evt);
+            }
+        });
+        menuExit.add(miExit);
+
+        jMenuBar1.add(menuExit);
 
         setJMenuBar(jMenuBar1);
 
@@ -1218,8 +1265,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadProjectSummary();
                 // reload team list
                 loadTeamMember();
+                
+                JOptionPane.showMessageDialog(this, "New project " + currentProjectId + " has been created.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // reload parent frame
                 parentJFrame.loadAllProjects();
-                //parentJFrame.loadTasksById(currentProjectId);
+               
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1227,8 +1278,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                 try {
                     db.rollbackUpdate();
                 }
-                catch (SQLException ex1) {
-                    ex.printStackTrace();
+                catch (SQLException exrb) {
+                    exrb.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -1276,9 +1327,14 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload project summary
                 loadProjectSummary();
                 // reload team list
+                
+                JOptionPane.showMessageDialog(this, "Project " + currentProjectId + " has been saved.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
                 loadTeamMember();
+                
+                // reload parent frame
                 parentJFrame.loadAllProjects(); 
-                //parentJFrame.loadAllTasks();
+
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1915,12 +1971,12 @@ public class ProjectDetails extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_pjd_lstCurTeamMemberMousePressed
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void miNewProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miNewProjectActionPerformed
         currentProjectId = 0;
         loadProjectInfo();
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    }//GEN-LAST:event_miNewProjectActionPerformed
 
-    private void MiNewTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiNewTaskActionPerformed
+    private void miNewTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miNewTaskActionPerformed
         if (currentProjectId == 0) {
             JOptionPane.showMessageDialog(this,
                     "Error: Please create a project before creating any task.",
@@ -1930,9 +1986,9 @@ public class ProjectDetails extends javax.swing.JFrame {
         else {
             addTask();
         }
-    }//GEN-LAST:event_MiNewTaskActionPerformed
+    }//GEN-LAST:event_miNewTaskActionPerformed
 
-    private void MiEditTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiEditTaskActionPerformed
+    private void miEditTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditTaskActionPerformed
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(this,
@@ -1950,9 +2006,9 @@ public class ProjectDetails extends javax.swing.JFrame {
         else {
             updateTask();
         }
-    }//GEN-LAST:event_MiEditTaskActionPerformed
+    }//GEN-LAST:event_miEditTaskActionPerformed
 
-    private void MiDeleteTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiDeleteTaskActionPerformed
+    private void miDeleteTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miDeleteTaskActionPerformed
         if (pjd_tbTaskList.getSelectedRow() == -1) {
             if (pjd_tbTaskList.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(this,
@@ -1970,16 +2026,21 @@ public class ProjectDetails extends javax.swing.JFrame {
         else {
             deleteTask();
         }
-    }//GEN-LAST:event_MiDeleteTaskActionPerformed
+    }//GEN-LAST:event_miDeleteTaskActionPerformed
 
-    private void MiBackToPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiBackToPreviousActionPerformed
+    private void miBackToPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miBackToPreviousActionPerformed
         parentDlg.setVisible(true);
         this.dispose();
-    }//GEN-LAST:event_MiBackToPreviousActionPerformed
+    }//GEN-LAST:event_miBackToPreviousActionPerformed
 
-    private void MiExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MiExitActionPerformed
+    private void miExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miExitActionPerformed
         System.exit(0);
-    }//GEN-LAST:event_MiExitActionPerformed
+    }//GEN-LAST:event_miExitActionPerformed
+
+    private void miEditProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditProjectActionPerformed
+        DefaultComboBoxModel<Project> modelProjectList = new DefaultComboBoxModel<>();
+        //dlgProjectChooser
+    }//GEN-LAST:event_miEditProjectActionPerformed
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
@@ -2008,14 +2069,10 @@ public class ProjectDetails extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu MenuExit;
-    private javax.swing.JMenu MenuProject;
-    private javax.swing.JMenu MenuTask;
-    private javax.swing.JMenuItem MiBackToPrevious;
-    private javax.swing.JMenuItem MiDeleteTask;
-    private javax.swing.JMenuItem MiEditTask;
-    private javax.swing.JMenuItem MiExit;
-    private javax.swing.JMenuItem MiNewTask;
+    private javax.swing.JDialog dlgProjectChooser;
+    private javax.swing.JButton dlgProjectChooser_btUpdate;
+    private javax.swing.JComboBox<String> dlgProjectChooser_cbProject;
+    private javax.swing.JLabel dlgProjectChooser_lblChooseProject;
     private javax.swing.JDialog dlgTaskEditor;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -2042,7 +2099,6 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -2052,6 +2108,16 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JMenu menuExit;
+    private javax.swing.JMenu menuProject;
+    private javax.swing.JMenu menuTask;
+    private javax.swing.JMenuItem miBackToPrevious;
+    private javax.swing.JMenuItem miDeleteTask;
+    private javax.swing.JMenuItem miEditProject;
+    private javax.swing.JMenuItem miEditTask;
+    private javax.swing.JMenuItem miExit;
+    private javax.swing.JMenuItem miNewProject;
+    private javax.swing.JMenuItem miNewTask;
     private javax.swing.JButton pjd_btAddTask;
     private javax.swing.JButton pjd_btDeleteTask;
     private javax.swing.JButton pjd_btDetailCancel;
