@@ -5,21 +5,15 @@
  */
 package IPD12.ProjectManagement;
 
-import java.awt.GraphicsConfiguration;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import jdk.nashorn.internal.objects.Global;
 
 /**
  *
@@ -38,10 +32,11 @@ public class ProjectDetails extends javax.swing.JFrame {
     JDialog parentDlg = null;
     long currentProjectId;
     Project currentProject = null;
-    long currentTaskId;
+    int currentTaskItem;
 
     /**
      * Creates new form ProjectList
+     * @param projectId
      */
     public ProjectDetails(long projectId) {
 
@@ -50,8 +45,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         try {
             // connect to db
             db = new Database();
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error connecting to database: " + e.getMessage(),
@@ -65,8 +59,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // get current project object
                 this.currentProject = db.getProjectById(this.currentProjectId);
 
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching project information from database: " + e.getMessage(),
@@ -121,8 +114,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             // initial value list for project manager combo box
             loadAllTeamMemberForComboBox();
-        }
-        // add new project
+        } // add new project
         else {
             pjd_lblTitle.setText(CREATE_NEW_PROJECT);
             pjd_lblProjectId.setText("");
@@ -151,11 +143,11 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             try {
                 // get task list
-                ArrayList<Task> taskList = db.getAllTasksByProjectId(currentProjectId);
+                ArrayList<Task> taskList = db.getAllTasksByProjectIdPlusItem(currentProjectId);
 
                 for (Task task : taskList) {
 
-                    String id = task.getId() + "";
+                    String item = String.format("%04d", task.getItem());
                     String name = task.getName();
                     String description = task.getDescription();
                     String startDatePlanned = GlobalProcess.formatOutputDate2(task.getStartDatePlanned());
@@ -175,12 +167,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                         }
                     }
 
-                    tbModel.addRow(new Object[]{id, name, description, startDatePlanned, endDatePlanned,
+                    tbModel.addRow(new Object[]{item, name, description, startDatePlanned, endDatePlanned,
                         startDateActual, endDateActual, inCharegePerson, isCompleted});
                 }
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -207,8 +198,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     modelMemberList.addElement(member);
                 }
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -234,8 +224,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 modelPM.addElement(rsc.getIdName());
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -263,8 +252,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -303,9 +291,9 @@ public class ProjectDetails extends javax.swing.JFrame {
         tsk_tfEndDateActual = new javax.swing.JTextField();
         tsk_btCancel = new javax.swing.JButton();
         jLabel32 = new javax.swing.JLabel();
-        tsk_lblTaskId = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
         tsk_taTaskDescription = new javax.swing.JTextArea();
+        tsk_tfTaskItemNo = new javax.swing.JTextField();
         jLabel33 = new javax.swing.JLabel();
         tsk_lblProjectId = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
@@ -399,7 +387,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
         });
 
-        jLabel26.setText("Task ID:");
+        jLabel26.setText("Item:");
 
         jLabel27.setText("Is Completed:");
 
@@ -461,13 +449,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         jLabel32.setText("Actual End Date:");
 
-        tsk_lblTaskId.setText(":::");
-
         tsk_taTaskDescription.setColumns(20);
-        tsk_taTaskDescription.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        tsk_taTaskDescription.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
         tsk_taTaskDescription.setRows(5);
         tsk_taTaskDescription.setText("task description");
         jScrollPane5.setViewportView(tsk_taTaskDescription);
+
+        tsk_tfTaskItemNo.setText("0010");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -479,7 +467,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jLabel25)
                         .addGap(18, 18, 18)
-                        .addComponent(tsk_cbInChargePerson, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(tsk_cbInChargePerson, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel31)
@@ -487,10 +475,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                             .addComponent(jLabel26))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(tsk_tfStartDatePlanned)
-                            .addComponent(tsk_tfStartDateActual)
-                            .addComponent(tsk_lblTaskId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(72, 72, 72)
+                            .addComponent(tsk_tfStartDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
+                            .addComponent(tsk_tfTaskItemNo)
+                            .addComponent(tsk_tfStartDateActual))
+                        .addGap(41, 41, 41)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel32)
                             .addComponent(jLabel27)
@@ -501,60 +489,58 @@ public class ProjectDetails extends javax.swing.JFrame {
                             .addComponent(tsk_chkbIsCompleted)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(tsk_tfTaskName, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(27, 27, 27)
+                                .addGap(31, 31, 31)
                                 .addComponent(jLabel30))
                             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
                                 .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.Alignment.LEADING)))))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tsk_btCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tsk_btSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                    .addComponent(tsk_btCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tsk_btSave, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(45, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel26)
-                                    .addComponent(jLabel29)
-                                    .addComponent(tsk_tfTaskName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel30)
-                                    .addComponent(tsk_lblTaskId))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel28)
-                                    .addComponent(tsk_tfStartDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel18)
-                                    .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(tsk_btCancel, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGap(7, 7, 7)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel31)
-                                    .addComponent(tsk_tfStartDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel32)
-                                    .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel25)
-                                        .addComponent(tsk_cbInChargePerson, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel27))
-                                    .addComponent(tsk_chkbIsCompleted)))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(tsk_btSave)))))
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel26)
+                            .addComponent(jLabel29)
+                            .addComponent(tsk_tfTaskName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel30)
+                            .addComponent(tsk_tfTaskItemNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel28)
+                            .addComponent(tsk_tfStartDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel18)
+                            .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(7, 7, 7)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel31)
+                            .addComponent(tsk_tfStartDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel32)
+                            .addComponent(tsk_tfEndDateActual, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel25)
+                                .addComponent(tsk_cbInChargePerson, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel27))
+                            .addComponent(tsk_chkbIsCompleted))))
                 .addGap(38, 38, 38))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(75, 75, 75)
+                .addComponent(tsk_btCancel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tsk_btSave)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jLabel33.setText("Project ID:");
@@ -572,21 +558,18 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(dlgTaskEditorLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tsk_lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(dlgTaskEditorLayout.createSequentialGroup()
-                        .addGroup(dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tsk_lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(dlgTaskEditorLayout.createSequentialGroup()
-                                .addGap(8, 8, 8)
-                                .addComponent(jLabel33)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(tsk_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(132, 132, 132)
-                                .addComponent(jLabel34)
-                                .addGap(26, 26, 26)
-                                .addComponent(tsk_lblProjectName)))
-                        .addGap(0, 544, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGap(8, 8, 8)
+                        .addComponent(jLabel33)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(tsk_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(132, 132, 132)
+                        .addComponent(jLabel34)
+                        .addGap(26, 26, 26)
+                        .addComponent(tsk_lblProjectName))
+                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         dlgTaskEditorLayout.setVerticalGroup(
             dlgTaskEditorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -683,7 +666,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         jLabel9.setText("Description:");
 
         pjd_taDescription.setColumns(20);
-        pjd_taDescription.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        pjd_taDescription.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
         pjd_taDescription.setRows(5);
         pjd_taDescription.setText("Project description......");
         jScrollPane4.setViewportView(pjd_taDescription);
@@ -773,42 +756,48 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(pjd_cbProjectManager, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel6)
+                        .addComponent(jLabel6)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel11)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel7))
-                        .addGap(27, 27, 27)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(pjd_lblProjectId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(pjd_tfStartDatePlanned)
-                            .addComponent(pjd_tfStartDateActual))
-                        .addGap(63, 63, 63)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel13)
-                            .addComponent(jLabel14)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel8))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(pjd_tfName, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel9))
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(pjd_chkbIsCompleted)
-                                .addComponent(pjd_tfEndDatePlanned)
-                                .addComponent(pjd_tfEndDateActual)))))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(19, 19, 19)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pjd_btDetailCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pjd_btDetailSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(pjd_cbProjectManager, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel11)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel7))
+                                .addGap(27, 27, 27)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(pjd_tfStartDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE)
+                                    .addComponent(pjd_tfStartDateActual)
+                                    .addComponent(pjd_lblProjectId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(53, 53, 53)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel13)
+                                    .addComponent(jLabel14)
+                                    .addComponent(jLabel10)
+                                    .addComponent(jLabel8))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(pjd_tfName, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jLabel9))
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(pjd_chkbIsCompleted)
+                                            .addComponent(pjd_tfEndDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+                                            .addComponent(pjd_tfEndDateActual))
+                                        .addGap(0, 0, Short.MAX_VALUE)))))
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pjd_btDetailSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_btDetailCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -817,11 +806,16 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jLabel6))
+                        .addComponent(jLabel6)
+                        .addGap(60, 60, 60)
+                        .addComponent(pjd_btDetailCancel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pjd_btDetailSave))
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(62, 62, 62)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(62, 62, 62)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel7)
                                     .addComponent(jLabel8)
@@ -833,12 +827,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addComponent(jLabel4)
                                     .addComponent(pjd_tfStartDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel10)
-                                    .addComponent(pjd_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(pjd_btDetailCancel)))
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(pjd_tfEndDatePlanned, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(7, 7, 7)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel11)
@@ -851,14 +840,8 @@ public class ProjectDetails extends javax.swing.JFrame {
                                         .addComponent(jLabel12)
                                         .addComponent(pjd_cbProjectManager, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(jLabel14))
-                                    .addComponent(pjd_chkbIsCompleted)))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(pjd_btDetailSave))))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(62, 62, 62)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(21, Short.MAX_VALUE))
+                                    .addComponent(pjd_chkbIsCompleted))))))
+                .addContainerGap(58, Short.MAX_VALUE))
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -869,7 +852,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Task ID", "Task Name", "Description", "Planned Start Date", "Planned End Date", "Actual Start Date", "Actual End Date", "Person in Charge", "Is Completed"
+                "Item", "Task Name", "Description", "Planned Start Date", "Planned End Date", "Actual Start Date", "Actual End Date", "Person in Charge", "Is Completed"
             }
         ));
         pjd_tbTaskList.setAutoscrolls(false);
@@ -918,33 +901,28 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
-                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1033, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
-                            .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_btAddTask, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-
-        jPanel2Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {pjd_btDeleteTask, pjd_btUpdateTask});
-
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(66, 66, 66)
+                        .addGap(88, 88, 88)
                         .addComponent(pjd_btAddTask)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pjd_btUpdateTask)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pjd_btDeleteTask)
-                        .addGap(0, 98, Short.MAX_VALUE))
+                        .addGap(0, 74, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel5)
@@ -1014,24 +992,26 @@ public class ProjectDetails extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 537, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pjd_btMoveBackFromTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(pjd_btMoveToTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(18, 18, 18)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(pjd_btMoveToTeam, javax.swing.GroupLayout.DEFAULT_SIZE, 58, Short.MAX_VALUE)
+                            .addComponent(pjd_btMoveBackFromTeam, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 539, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(100, 100, 100)
+                        .addComponent(jLabel3))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(18, 18, 18)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pjd_btTeamCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(pjd_btTeamSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel3))
-                .addContainerGap())
+                            .addComponent(pjd_btTeamCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pjd_btTeamSave, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {pjd_btMoveBackFromTeam, pjd_btMoveToTeam});
+        jPanel3Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jScrollPane2, jScrollPane3});
 
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1056,9 +1036,9 @@ public class ProjectDetails extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGroup(jPanel3Layout.createSequentialGroup()
-                                        .addGap(76, 76, 76)
+                                        .addGap(87, 87, 87)
                                         .addComponent(pjd_btTeamCancel)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(pjd_btTeamSave)))))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1148,15 +1128,15 @@ public class ProjectDetails extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(pjd_lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(pjd_btGoBackToPjList, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(38, 38, 38))
+                        .addComponent(pjd_btGoBackToPjList, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap(41, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1245,8 +1225,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (projectManagerStr.compareTo(PLEASE_CHOOSE) != 0) {
             projectManager = Long.parseLong(projectManagerStr.substring(0, projectManagerStr.indexOf(" ")));
-        }
-        else {
+        } else {
             projectManager = 0;
         }
 
@@ -1282,23 +1261,19 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload parent frame
                 parentJFrame.loadAllProjects();
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException exrb) {
+                } catch (SQLException exrb) {
                     exrb.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1346,23 +1321,19 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload parent frame
                 parentJFrame.loadAllProjects();
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException ex1) {
+                } catch (SQLException ex1) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1380,18 +1351,15 @@ public class ProjectDetails extends javax.swing.JFrame {
                 isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                 if (isProjectCompleted) {
                     JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
-                }
-                else {
+                } else {
                     moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
                 }
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
             }
-        }
-        else {
+        } else {
             JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
         }
 
@@ -1408,8 +1376,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
 
                 moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -1487,23 +1454,19 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 // reload team member for pm or in-charge-person in project summary 
                 loadAllTeamMemberForComboBox();
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: team update error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException ex1) {
+                } catch (SQLException ex1) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1524,6 +1487,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_tsk_btCancelActionPerformed
 
     private void tsk_btSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btSaveActionPerformed
+        currentTaskItem = Integer.parseInt(tsk_tfTaskItemNo.getText()); // all of checks will be done in the lost focus event
         String taskName = tsk_tfTaskName.getText();
         String description = tsk_taTaskDescription.getText();
         Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
@@ -1537,7 +1501,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error: Please enter the task name.", "Input error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        
         tempDate = tsk_tfStartDatePlanned.getText();
         if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
             startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
@@ -1580,38 +1544,35 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (inChargePersonStr.compareTo(PLEASE_CHOOSE) != 0) {
             inChargePerson = Long.parseLong(inChargePersonStr.substring(0, inChargePersonStr.indexOf(" ")));
-        }
-        else {
+        } else {
             inChargePerson = 0;
         }
 
         // create a new task
-        if (currentTaskId == 0) {
+        if (tsk_tfTaskItemNo.isEnabled()) {
             try {
-                Task task = new Task(0, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                Task task = new Task(currentProjectId, currentTaskItem, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
         } // update old task
         else {
             try {
-                Task task = new Task(currentTaskId, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                Task task = new Task(currentProjectId, currentTaskItem, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1626,22 +1587,25 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void addTask() {
 
-        // initialize current task id
-        currentTaskId = 0;
-
-        tsk_lblTitle.setText(CREATE_NEW_TASK);
-        tsk_lblProjectId.setText(currentProjectId + "");
-        tsk_lblProjectName.setText(currentProject.getName());
-        tsk_lblTaskId.setText("");
-        tsk_tfTaskName.setText("");
-        tsk_taTaskDescription.setText("");
-        tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
-        tsk_chkbIsCompleted.setSelected(false);
-
         try {
+
+            // initialize current task id
+            currentTaskItem = (int) (Math.floor((db.getMaxItem(currentProjectId) + 10) / 10)) * 10;
+
+            // initilize task edit dialog window
+            tsk_lblTitle.setText(CREATE_NEW_TASK);
+            tsk_lblProjectId.setText(currentProjectId + "");
+            tsk_lblProjectName.setText(currentProject.getName());
+            tsk_tfTaskItemNo.setText(String.format("%04d", currentTaskItem));
+            tsk_tfTaskItemNo.setEnabled(true);
+            tsk_tfTaskName.setText("");
+            tsk_taTaskDescription.setText("");
+            tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
+            tsk_chkbIsCompleted.setSelected(false);
+
             // initial value list for in-charege-person combo box
             // get all team members
             ArrayList<Team> team = db.getAllTeamMembers(currentProjectId);
@@ -1653,9 +1617,10 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (Team member : team) {
                 modelInCharePerson.addElement(member.getIdName());
             }
+            
+            tsk_tfTaskName.grabFocus();
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -1672,17 +1637,20 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void updateTask() {
 
-        tsk_lblProjectId.setText(currentProjectId + "");
-
-        tsk_lblProjectName.setText(currentProject.getName());
-
-        // initilize current task id
-        currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
-        tsk_lblTaskId.setText(currentTaskId + "");
-
         try {
+            
+            // initilize current task id
+            currentTaskItem = Integer.parseInt((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+            
             // get task details from Database
-            Task task = db.getTaskById(currentTaskId);
+            Task task = db.getTaskByProjectIdPlusItem(currentProjectId, currentTaskItem);
+            
+            // initilize task edit dialog window
+            tsk_lblProjectId.setText(currentProjectId + "");
+            tsk_lblProjectName.setText(currentProject.getName());
+
+            tsk_tfTaskItemNo.setText(String.format("%04d", currentTaskItem));
+            tsk_tfTaskItemNo.setEnabled(false);
 
             tsk_lblTitle.setText(TASK_EDITOR + task.getName());
             tsk_tfTaskName.setText(task.getName());
@@ -1710,8 +1678,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -1728,11 +1695,11 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void deleteTask() {
 
-        currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+        currentTaskItem = Integer.parseInt((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
 
         Object[] options = {"Cancel", "Delete"};
         int decision = JOptionPane.showOptionDialog(this,
-                "Are you sure you want to delete the task: ID# " + currentTaskId,
+                "Are you sure you want to delete the task: ID# " + currentTaskItem,
                 "Confirm delete",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE,
@@ -1743,12 +1710,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (decision == 1) {
             // change delete flag status to true
             try {
-                db.changeDeleteFlagStatus(currentTaskId, true);
+                db.changeDeleteFlagStatus(currentProjectId, currentTaskItem, true);
                 loadTaskList();
                 parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: task deletion error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1762,8 +1728,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     "Error: Please create a project before creating any task.",
                     "No Project",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        else {
+        } else {
             addTask();
         }
     }//GEN-LAST:event_pjd_btAddTaskActionPerformed
@@ -1775,15 +1740,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for editing.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             updateTask();
         }
     }//GEN-LAST:event_pjd_btUpdateTaskActionPerformed
@@ -1795,15 +1758,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for deleting.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             deleteTask();
         }
     }//GEN-LAST:event_pjd_btDeleteTaskActionPerformed
@@ -1943,18 +1904,15 @@ public class ProjectDetails extends javax.swing.JFrame {
                     isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                     if (isProjectCompleted) {
                         JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
-                    }
-                    else {
+                    } else {
                         moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
                     }
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
                 }
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
             }
         }
@@ -1972,8 +1930,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     }
 
                     moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -1993,8 +1950,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     "Error: Please create a project before creating any task.",
                     "No Project",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        else {
+        } else {
             addTask();
         }
     }//GEN-LAST:event_miNewTaskActionPerformed
@@ -2006,15 +1962,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for editing.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             updateTask();
         }
     }//GEN-LAST:event_miEditTaskActionPerformed
@@ -2026,15 +1980,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for deleting.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             deleteTask();
         }
     }//GEN-LAST:event_miDeleteTaskActionPerformed
@@ -2049,7 +2001,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_miExitActionPerformed
 
     private void miEditProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditProjectActionPerformed
-        DefaultComboBoxModel<String> modelProjectList = (DefaultComboBoxModel)dlgProjectChooser_cbProject.getModel();
+        DefaultComboBoxModel<String> modelProjectList = (DefaultComboBoxModel) dlgProjectChooser_cbProject.getModel();
         modelProjectList.removeAllElements();
 
         modelProjectList.addElement(PLEASE_CHOOSE);
@@ -2059,8 +2011,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (Project p : projectList) {
                 modelProjectList.addElement(p.toString());
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -2081,8 +2032,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 currentProject = db.getProjectById(this.currentProjectId);
                 loadProjectInfo();
                 dlgProjectChooser.setVisible(false);
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching project information from database: " + e.getMessage(),
@@ -2095,16 +2045,16 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
+
         if (!listFrom.isSelectionEmpty()) {
             ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
+            
             int[] rscIdxList = listFrom.getSelectedIndices();
-
             int rowsForMoving = rscIdxList.length;
             // move out from resource
             for (int i = rowsForMoving - 1; i >= 0; i--) {
                 modelFrom.removeElementAt(rscIdxList[i]);
             }
-
             // move into team
             int sizeBeforeMoving = modelTo.getSize();
             for (Team member : listSelected) {
@@ -2201,13 +2151,13 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JCheckBox tsk_chkbIsCompleted;
     private javax.swing.JLabel tsk_lblProjectId;
     private javax.swing.JLabel tsk_lblProjectName;
-    private javax.swing.JLabel tsk_lblTaskId;
     private javax.swing.JLabel tsk_lblTitle;
     private javax.swing.JTextArea tsk_taTaskDescription;
     private javax.swing.JTextField tsk_tfEndDateActual;
     private javax.swing.JTextField tsk_tfEndDatePlanned;
     private javax.swing.JTextField tsk_tfStartDateActual;
     private javax.swing.JTextField tsk_tfStartDatePlanned;
+    private javax.swing.JTextField tsk_tfTaskItemNo;
     private javax.swing.JTextField tsk_tfTaskName;
     // End of variables declaration//GEN-END:variables
 

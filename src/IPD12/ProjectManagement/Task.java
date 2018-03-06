@@ -14,6 +14,7 @@ import java.util.Date;
 public class Task {
     private long id;
     private long projectId;
+    private int item;
     private String name;
     private String description;
     private Date startDatePlanned;
@@ -27,6 +28,19 @@ public class Task {
     // constructor
     public Task(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted) {
         this.id = id;
+        this.name = name;
+        this.description = description;
+        this.startDatePlanned = startDatePlanned;
+        this.endDatePlanned = endDatePlanned;
+        this.startDateActual = startDateActual;
+        this.endDateActual = endDateActual;
+        this.personInCharge = personInCharge;
+        this.isCompleted = isCompleted;
+    }
+    
+    public Task(long projectId, int item, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long personInCharge, boolean isCompleted) {
+        this.projectId = projectId;
+        this.item = item;
         this.name = name;
         this.description = description;
         this.startDatePlanned = startDatePlanned;
@@ -65,8 +79,16 @@ public class Task {
         this.isCompleted = isCompleted;
         this.personInChargeName = personInChargeName;
     }
-
+    
     // setters and getters
+    public int getItem() {
+        return item;
+    }
+
+    public void setItem(int item) {    
+        this.item = item;
+    }
+
     public long getId() {
         return id;
     }

@@ -116,12 +116,24 @@ Each member writes down answers to 3 questions:
  - Nothing special.
 
 
- 2018/03/02 Jing Wang
+ 2018/03/05 Jing Wang (Weekend work)
 1. Done since last scrum:
 - Function improvement, added lots of condition check
 - Solved lots of bugs
 2. Plan until next Scrum
 - Add report 
 - Test Jie's part
+3. Need assistance / figure things out
+- Nothing special
+
+ 2018/03/06 Jing Wang
+1. Done since last scrum:
+- Function improvement
+- Solved lots of bugs
+- Add new field "item" in the "tasks" table, so that show the task list like "0010", "0020", ... instead of automatically generated task id;
+- Fix the program caused by the new field "item";
+2. Plan until next Scrum
+- Test Jie's part
+- Prepare presentation
 3. Need assistance / figure things out
 - Nothing special
