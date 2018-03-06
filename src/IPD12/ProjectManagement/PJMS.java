@@ -40,7 +40,7 @@ public class PJMS extends javax.swing.JFrame {
     private final int OPEN_SHOWUSER_DLG=2;
     private final int OPEN_USEREDIT_DLG=3;
     private int[] colorFlag;   
-    private Database db;
+    public static Database db;
     public static User currentUser = null;
     private boolean editFlag = false;
 
@@ -121,7 +121,7 @@ public class PJMS extends javax.swing.JFrame {
                 }
             }
             rowIndex++;
-            taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), l.getIsCompleted(), alertString, l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
+            taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), String.valueOf(l.getIsCompleted()), alertString, String.valueOf(l.getStartDatePlanned()),String.valueOf( l.getEndDatePlanned()),String.valueOf( l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
             alertString = "";
         }
     }
@@ -339,7 +339,7 @@ public class PJMS extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
         loginDlg_btnRegister = new javax.swing.JButton();
 
-        mainDlg_pmShowDetail.setText("Show Detail");
+        mainDlg_pmShowDetail.setText("Report");
         mainDlg_pmShowDetail.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mainDlg_pmShowDetailActionPerformed(evt);
@@ -1122,8 +1122,10 @@ public class PJMS extends javax.swing.JFrame {
     private void mainDlg_tbProjectsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMousePressed
         if (evt.getClickCount() == 2) {
             showProjectEditDlg();
-        } else {
-            int index = mainDlg_tbProjects.getSelectedRow();
+        } else{
+            JTable table = (JTable) evt.getSource(); 
+            Point point = evt.getPoint();
+            int index = table.rowAtPoint(point);
             String idString = projectTableModel.getValueAt(index, 0).toString();
             if (isInteger(idString)) {
                 int id = Integer.parseInt(idString);
@@ -1133,11 +1135,14 @@ public class PJMS extends javax.swing.JFrame {
     }//GEN-LAST:event_mainDlg_tbProjectsMousePressed
 
     private void mainDlg_pmShowDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_pmShowDetailActionPerformed
-        showProjectEditDlg();
+        //showProjectEditDlg();
+        int rowIndex = mainDlg_tbProjects.getSelectedRow();
+        String projectName = projectTableModel.getValueAt(rowIndex, 1).toString();
+        String title = projectName + "'s Report";            
+        ProjectTasksTimeSeriesReport report = new ProjectTasksTimeSeriesReport(title);
     }//GEN-LAST:event_mainDlg_pmShowDetailActionPerformed
 
     private void mainDlg_tbProjectsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMouseReleased
-
         if (evt.isPopupTrigger()) {
             JTable table = (JTable) evt.getSource();
             Point point = evt.getPoint();

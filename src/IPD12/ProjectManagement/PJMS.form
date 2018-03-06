@@ -10,7 +10,7 @@
       <SubComponents>
         <MenuItem class="javax.swing.JMenuItem" name="mainDlg_pmShowDetail">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Show Detail"/>
+            <Property name="text" type="java.lang.String" value="Report"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mainDlg_pmShowDetailActionPerformed"/>
@@ -239,7 +239,7 @@
                   </Table>
                 </Property>
                 <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="&#x9ed8;&#x8ba4;&#x5149;&#x6807;"/>
+                  <Color id="Default Cursor"/>
                 </Property>
               </Properties>
               <Events>
