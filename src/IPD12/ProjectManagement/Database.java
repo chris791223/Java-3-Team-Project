@@ -388,7 +388,21 @@ public class Database {
         }
     }
     
-    
+    public ArrayList<Project> getAllProjectIdName() throws SQLException {        
+        String sql = "SELECT * FROM projects";
+        ArrayList<Project> list = new ArrayList<>();     
+
+        try (Statement stmt = conn.createStatement()) {
+            ResultSet result = stmt.executeQuery(sql);            
+            while (result.next()) {
+                long id = result.getLong("id");
+                String name = result.getString("name");              
+                Project p = new Project(id, name);
+                list.add(p);
+            }
+        }         
+        return list;
+    }
    
     
    // For Jerry
