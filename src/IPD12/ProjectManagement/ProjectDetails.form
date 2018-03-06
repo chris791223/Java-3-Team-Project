@@ -94,7 +94,7 @@
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="tsk_tfStartDatePlanned" max="32767" attributes="0"/>
                                   <Component id="tsk_tfStartDateActual" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="tsk_lblTaskId" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="tsk_tfTaskItemNo" max="32767" attributes="0"/>
                               </Group>
                               <EmptySpace min="-2" pref="72" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
@@ -120,7 +120,7 @@
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="jScrollPane5" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="189" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="tsk_btCancel" alignment="1" min="-2" pref="115" max="-2" attributes="0"/>
                           <Component id="tsk_btSave" alignment="1" min="-2" pref="115" max="-2" attributes="0"/>
@@ -143,7 +143,7 @@
                                           <Component id="jLabel29" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="tsk_tfTaskName" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="jLabel30" alignment="3" min="-2" max="-2" attributes="0"/>
-                                          <Component id="tsk_lblTaskId" alignment="3" min="-2" max="-2" attributes="0"/>
+                                          <Component id="tsk_tfTaskItemNo" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="3" attributes="0">
@@ -221,7 +221,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel26">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Task ID:"/>
+                <Property name="text" type="java.lang.String" value="Item:"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel27">
@@ -307,11 +307,6 @@
                 <Property name="text" type="java.lang.String" value="Actual End Date:"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JLabel" name="tsk_lblTaskId">
-              <Properties>
-                <Property name="text" type="java.lang.String" value=":::"/>
-              </Properties>
-            </Component>
             <Container class="javax.swing.JScrollPane" name="jScrollPane5">
               <AuxValues>
                 <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
@@ -331,6 +326,11 @@
                 </Component>
               </SubComponents>
             </Container>
+            <Component class="javax.swing.JTextField" name="tsk_tfTaskItemNo">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="0010"/>
+              </Properties>
+            </Component>
           </SubComponents>
         </Container>
         <Component class="javax.swing.JLabel" name="jLabel33">
@@ -965,7 +965,7 @@
                 <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                   <Table columnCount="9" rowCount="0">
-                    <Column editable="true" title="Task ID" type="java.lang.Object"/>
+                    <Column editable="true" title="Item" type="java.lang.Object"/>
                     <Column editable="true" title="Task Name" type="java.lang.Object"/>
                     <Column editable="true" title="Description" type="java.lang.Object"/>
                     <Column editable="true" title="Planned Start Date" type="java.lang.Object"/>

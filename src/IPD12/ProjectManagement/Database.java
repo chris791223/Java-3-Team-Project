@@ -121,6 +121,54 @@ public class Database {
         return list;
     }
     
+    public ArrayList<Task> getAllTasksByProjectIdPlusItem(long projectId) throws SQLException {
+
+        String sql = "SELECT item, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted "
+                + "FROM tasks WHERE projectId = ? AND isDeleted = false ORDER BY item";
+        ArrayList<Task> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+
+            ResultSet result = stmt.executeQuery();
+            while (result.next()) {
+                int item = result.getInt("item");
+                String name = result.getString("name");
+                String description = result.getString("description");
+                Date startDatePlanned = result.getDate("startDatePlanned");
+                Date endDatePlanned = result.getDate("endDatePlanned");
+                Date startDateActual = result.getDate("startDateActual");
+                Date endDateActual = result.getDate("endDateActual");
+                long inChargePersonId = result.getLong("inChargePerson");
+                boolean isCompleted = result.getBoolean("isCompleted");
+
+                Task task = new Task(projectId, item, name, description, startDatePlanned, endDatePlanned,
+                        startDateActual, endDateActual, inChargePersonId, isCompleted);
+                list.add(task);
+            }
+        }
+
+        return list;
+    }
+    
+    public int getMaxItem(long projectId) throws SQLException {
+        int maxItem;
+        String sql = "SELECT MAX(item) FROM tasks WHERE projectId = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+            
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                maxItem = result.getInt(1);
+            } else {
+                maxItem = 0;
+            }
+        }
+
+        return maxItem;
+    }
+
     public boolean checkIfHasUncompletedTaskByProjectId(long projectId) throws SQLException {
 
         String sql = "SELECT * FROM tasks WHERE projectId = ? AND isDeleted = false AND isCompleted = false";
@@ -295,16 +343,15 @@ public class Database {
         } 
     }
   
-    public Task getTaskById(long taskId) throws SQLException {
-        String sql = "SELECT * FROM tasks WHERE id = ? and isDeleted = false";
+    public Task getTaskByProjectIdPlusItem(long projectId, int item) throws SQLException {
+        String sql = "SELECT * FROM tasks WHERE projectId = ? AND item = ?  AND isDeleted = false";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, taskId);
+            stmt.setLong(1, projectId);
+            stmt.setInt(2, item);
             
             ResultSet result = stmt.executeQuery();
             if (result.next()) {
-                long id = result.getLong("id");
-                long projectId = result.getLong("projectId");
                 String name = result.getString("name");
                 String despcription = result.getString("description");
                 Date startDatePlanned = result.getDate("startDatePlanned");
@@ -314,7 +361,7 @@ public class Database {
                 long personInCharge = result.getLong("inChargePerson");
                 boolean isCompleted = result.getBoolean("isCompleted");
                 
-                Task task = new Task(id, projectId, name, despcription, startDatePlanned, endDatePlanned, startDateActual, endDateActual, personInCharge, isCompleted);
+                Task task = new Task(projectId, item, name, despcription, startDatePlanned, endDatePlanned, startDateActual, endDateActual, personInCharge, isCompleted);
                 return task;
             }
             else {
@@ -324,26 +371,27 @@ public class Database {
     }
     
     public void addTask(Task task) throws SQLException {
-        String sql = "INSERT INTO tasks (projectId, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted) "
-                + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tasks (projectId, item, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted) "
+                + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, task.getProjectId());
-            stmt.setString(2, task.getName());
-            stmt.setString(3, task.getDescription());
+            stmt.setInt(2, task.getItem());
+            stmt.setString(3, task.getName());
+            stmt.setString(4, task.getDescription());
 
-            stmt.setDate(4, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
-            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
-            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getStartDateActual()));
-            stmt.setDate(7, GlobalProcess.formatSqlDate(task.getEndDateActual()));
+            stmt.setDate(5, GlobalProcess.formatSqlDate(task.getStartDatePlanned()));
+            stmt.setDate(6, GlobalProcess.formatSqlDate(task.getEndDatePlanned()));
+            stmt.setDate(7, GlobalProcess.formatSqlDate(task.getStartDateActual()));
+            stmt.setDate(8, GlobalProcess.formatSqlDate(task.getEndDateActual()));
 
             if (task.getPersonInCharge()== 0) {
-                stmt.setString(8, null);
+                stmt.setString(9, null);
             }
             else {
-                stmt.setLong(8, task.getPersonInCharge());
+                stmt.setLong(9, task.getPersonInCharge());
             }
 
-            stmt.setBoolean(9, task.getIsCompleted());
+            stmt.setBoolean(10, task.getIsCompleted());
 
             stmt.executeUpdate();
 
@@ -354,7 +402,7 @@ public class Database {
         String sql = "UPDATE tasks SET name = ?, "
                 + "description = ?, startDatePlanned = ?, endDatePlanned = ?, "
                 + "startDateActual = ?, endDateActual = ?, inChargePerson = ?, "
-                + "isCompleted = ? WHERE id = ?";
+                + "isCompleted = ? WHERE projectId = ? AND item = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, task.getName());
             stmt.setString(2, task.getDescription());
@@ -372,17 +420,19 @@ public class Database {
             }
 
             stmt.setBoolean(8, task.getIsCompleted());
-            stmt.setLong(9, task.getId());
+            stmt.setLong(9, task.getProjectId());
+            stmt.setInt(10, task.getItem());
 
             stmt.executeUpdate();
         }
     }
     
-    public void changeDeleteFlagStatus(long taskId, boolean flag) throws SQLException {
-        String sql = "UPDATE tasks SET isDeleted = ? WHERE id = ?";
+    public void changeDeleteFlagStatus(long projectId, int item, boolean flag) throws SQLException {
+        String sql = "UPDATE tasks SET isDeleted = ? WHERE projectId = ? AND item = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBoolean(1, flag);
-            stmt.setLong(2, taskId);
+            stmt.setLong(2, projectId);
+            stmt.setInt(3, item);
             
             stmt.executeUpdate();
         }
