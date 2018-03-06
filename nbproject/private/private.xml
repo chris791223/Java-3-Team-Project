@@ -2,6 +2,11 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/D:/IPD12-PJMS/src/IPD12/ProjectManagement/PJMS.java</file>
+            <file>file:/D:/IPD12-PJMS/src/IPD12/ProjectManagement/ProjectTasksTimeSeriesReport.java</file>
+            <file>file:/D:/IPD12-PJMS/src/IPD12/ProjectManagement/ProjectDetails.java</file>
+            <file>file:/D:/IPD12-PJMS/src/IPD12/ProjectManagement/Database.java</file>
+        </group>
     </open-files>
 </project-private>

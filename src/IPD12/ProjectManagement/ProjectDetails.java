@@ -11,6 +11,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -19,7 +21,6 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import jdk.nashorn.internal.objects.Global;
 
 /**
  *
@@ -2050,16 +2051,14 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
-        if (!listFrom.isSelectionEmpty()) {
-            ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
+        if (!listFrom.isSelectionEmpty()) {            
+            ArrayList<Team> listSelected = new ArrayList<Team>(listFrom.getSelectedValuesList());            
             int[] rscIdxList = listFrom.getSelectedIndices();
-
             int rowsForMoving = rscIdxList.length;
             // move out from resource
             for (int i = rowsForMoving - 1; i >= 0; i--) {
                 modelFrom.removeElementAt(rscIdxList[i]);
             }
-
             // move into team
             int sizeBeforeMoving = modelTo.getSize();
             for (Team member : listSelected) {
