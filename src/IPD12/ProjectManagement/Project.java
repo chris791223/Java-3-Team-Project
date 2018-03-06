@@ -31,6 +31,11 @@ public class Project {
         this.id = id;
     }
     
+    public Project(long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
     public Project(long id, String name, String description, Date startDatePlanned, Date endDatePlanned, Date startDateActual, Date endDateActual, long projectManager, boolean isCompleted) {
         this.id = id;
         this.name = name;
@@ -114,6 +119,10 @@ public class Project {
 
     public void setIsCompleted(boolean isCompleted) {
         this.isCompleted = isCompleted;
+    }
+    
+    public String toString() {
+        return this.id + "-" + this.name;
     }
     
    // For Jerry

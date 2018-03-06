@@ -86,6 +86,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         this.parentDlg = parentDlg;
     }
     private PJMS parentJFrame;
+
     public ProjectDetails(PJMS parentFrame, long projectId) {
         this(projectId);
         this.parentJFrame = parentFrame;
@@ -619,12 +620,20 @@ public class ProjectDetails extends javax.swing.JFrame {
         });
         popMenuTaskEdit.add(popMiDelete);
 
+        dlgProjectChooser.setTitle("Project Chooser");
+        dlgProjectChooser.setModal(true);
+
         dlgProjectChooser_lblChooseProject.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
-        dlgProjectChooser_lblChooseProject.setText("Choose Project ...");
+        dlgProjectChooser_lblChooseProject.setText("Choose a Project ...");
 
         dlgProjectChooser_cbProject.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         dlgProjectChooser_btUpdate.setText("Update");
+        dlgProjectChooser_btUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dlgProjectChooser_btUpdateActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout dlgProjectChooserLayout = new javax.swing.GroupLayout(dlgProjectChooser.getContentPane());
         dlgProjectChooser.getContentPane().setLayout(dlgProjectChooserLayout);
@@ -633,12 +642,14 @@ public class ProjectDetails extends javax.swing.JFrame {
             .addGroup(dlgProjectChooserLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dlgProjectChooser_lblChooseProject)
                     .addGroup(dlgProjectChooserLayout.createSequentialGroup()
-                        .addComponent(dlgProjectChooser_cbProject, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29)
+                        .addComponent(dlgProjectChooser_lblChooseProject)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(dlgProjectChooserLayout.createSequentialGroup()
+                        .addComponent(dlgProjectChooser_cbProject, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
                         .addComponent(dlgProjectChooser_btUpdate)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         dlgProjectChooserLayout.setVerticalGroup(
             dlgProjectChooserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -915,7 +926,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
@@ -1265,12 +1276,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadProjectSummary();
                 // reload team list
                 loadTeamMember();
-                
+
                 JOptionPane.showMessageDialog(this, "New project " + currentProjectId + " has been created.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                
+
                 // reload parent frame
                 parentJFrame.loadAllProjects();
-               
+
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1327,13 +1338,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload project summary
                 loadProjectSummary();
                 // reload team list
-                
+
                 JOptionPane.showMessageDialog(this, "Project " + currentProjectId + " has been saved.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                
+
                 loadTeamMember();
-                
+
                 // reload parent frame
-                parentJFrame.loadAllProjects(); 
+                parentJFrame.loadAllProjects();
 
             }
             catch (SQLException ex) {
@@ -1580,7 +1591,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 Task task = new Task(0, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
 
-                loadTaskList();                
+                loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
@@ -1595,7 +1606,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 Task task = new Task(currentTaskId, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
 
-                loadTaskList();                
+                loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
@@ -1792,7 +1803,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
-        else {            
+        else {
             deleteTask();
         }
     }//GEN-LAST:event_pjd_btDeleteTaskActionPerformed
@@ -2038,9 +2049,49 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_miExitActionPerformed
 
     private void miEditProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditProjectActionPerformed
-        DefaultComboBoxModel<Project> modelProjectList = new DefaultComboBoxModel<>();
-        //dlgProjectChooser
+        DefaultComboBoxModel<String> modelProjectList = (DefaultComboBoxModel)dlgProjectChooser_cbProject.getModel();
+        modelProjectList.removeAllElements();
+
+        modelProjectList.addElement(PLEASE_CHOOSE);
+
+        try {
+            ArrayList<Project> projectList = db.getAllProjectIdName();
+            for (Project p : projectList) {
+                modelProjectList.addElement(p.toString());
+            }
+        }
+        catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
+
+        }
+
+        dlgProjectChooser.pack();
+        dlgProjectChooser.setLocationRelativeTo(this);
+        dlgProjectChooser.setVisible(true);
     }//GEN-LAST:event_miEditProjectActionPerformed
+
+    private void dlgProjectChooser_btUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dlgProjectChooser_btUpdateActionPerformed
+        String projectIdName = (String) dlgProjectChooser_cbProject.getSelectedItem();
+
+        if (projectIdName.compareTo(PLEASE_CHOOSE) != 0) {
+            currentProjectId = Long.parseLong(projectIdName.substring(0, projectIdName.indexOf("-")));
+            try {
+                // get current project object
+                currentProject = db.getProjectById(this.currentProjectId);
+                loadProjectInfo();
+                dlgProjectChooser.setVisible(false);
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Error fetching project information from database: " + e.getMessage(),
+                        "Database error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+    }//GEN-LAST:event_dlgProjectChooser_btUpdateActionPerformed
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
