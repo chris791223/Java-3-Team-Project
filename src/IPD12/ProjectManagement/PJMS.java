@@ -1036,7 +1036,16 @@ public class PJMS extends javax.swing.JFrame {
     }
 
     private void loginDlg_btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginActionPerformed
-        if (isMatchUserAccount()) {
+        String userID = loginDlg_tfUserID.getText();
+        if(userID.isEmpty()){
+            JOptionPane.showMessageDialog(null,
+                    "You still didn't enter a userID!\n",
+                    "Enter wrong!",
+                    JOptionPane.INFORMATION_MESSAGE);
+            loginDlg_tfUserID.setText("Email or Employee ID");
+            loginDlg_tfUserID.requestFocusInWindow();
+            return;
+        }else if(isMatchUserAccount()) {
             this.setVisible(false);
             mainDlg.pack();
             mainDlg.setLocationRelativeTo(this);
@@ -1059,7 +1068,16 @@ public class PJMS extends javax.swing.JFrame {
 
     private void loginDlg_btnLoginKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_loginDlg_btnLoginKeyPressed
         if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
-            if (isMatchUserAccount()) {
+            String userID = loginDlg_tfUserID.getText();
+            if (userID.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "You still didn't enter a userID!\n",
+                        "Enter wrong!",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loginDlg_tfUserID.setText("Email or Employee ID");
+                loginDlg_tfUserID.requestFocusInWindow();
+                return;
+            } else if (isMatchUserAccount()) {
                 this.setVisible(false);
                 mainDlg.pack();
                 mainDlg.setLocationRelativeTo(this);
