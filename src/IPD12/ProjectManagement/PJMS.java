@@ -1030,7 +1030,11 @@ public class PJMS extends javax.swing.JFrame {
             currentUser = db.getUserById(userIdentify);
             mainDlg_menuAccount.setText("  |  Hi! " + currentUser.getName());
         } catch (SQLException ex) {
-            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "There is no your ID in database!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
         }
         return true;
     }
@@ -1196,7 +1200,11 @@ public class PJMS extends javax.swing.JFrame {
             userDlg_tfPass.setText(user.getPassword());
             userDlg_tfPassconfirm.setText(user.getPassword());
         } catch (SQLException ex) {
-            Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Maybe there is some wrong in database!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
@@ -1233,7 +1241,11 @@ public class PJMS extends javax.swing.JFrame {
                 editFlag = false;
                 disableUserDlgTextField();
             } catch (SQLException ex) {
-                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                    "There is some error when update your information!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_userDlg_btnEditActionPerformed
@@ -1300,7 +1312,11 @@ public class PJMS extends javax.swing.JFrame {
                         "Successfully!",
                         JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
-                Logger.getLogger(PJMS.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "You enter a wrong information!\n" + ex.getMessage(),
+                    "Database error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_registerDlg_btnSaveActionPerformed
