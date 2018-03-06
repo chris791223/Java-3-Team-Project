@@ -1259,8 +1259,9 @@ public class ProjectDetails extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "New project " + currentProjectId + " has been created.", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                 // reload parent frame
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-
+                
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1319,7 +1320,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadTeamMember();
 
                 // reload parent frame
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
 
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1556,8 +1563,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1571,7 +1583,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                //currentProject = db.getProjectById(currentProjectId);                
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
+                
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1713,7 +1731,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                 db.changeDeleteFlagStatus(currentProjectId, currentTaskItem, true);
                 loadTaskList();
                 parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: task deletion error !", "Database error", JOptionPane.ERROR_MESSAGE);
