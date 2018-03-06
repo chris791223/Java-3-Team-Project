@@ -38,7 +38,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     JDialog parentDlg = null;
     long currentProjectId;
     Project currentProject = null;
-    long currentTaskId;
+    int currentTaskItem;
 
     /**
      * Creates new form ProjectList
@@ -50,8 +50,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         try {
             // connect to db
             db = new Database();
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error connecting to database: " + e.getMessage(),
@@ -65,8 +64,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // get current project object
                 this.currentProject = db.getProjectById(this.currentProjectId);
 
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching project information from database: " + e.getMessage(),
@@ -121,8 +119,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             // initial value list for project manager combo box
             loadAllTeamMemberForComboBox();
-        }
-        // add new project
+        } // add new project
         else {
             pjd_lblTitle.setText(CREATE_NEW_PROJECT);
             pjd_lblProjectId.setText("");
@@ -151,11 +148,11 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             try {
                 // get task list
-                ArrayList<Task> taskList = db.getAllTasksByProjectId(currentProjectId);
+                ArrayList<Task> taskList = db.getAllTasksByProjectIdPlusItem(currentProjectId);
 
                 for (Task task : taskList) {
 
-                    String id = task.getId() + "";
+                    String item = String.format("%04d", task.getItem());
                     String name = task.getName();
                     String description = task.getDescription();
                     String startDatePlanned = GlobalProcess.formatOutputDate2(task.getStartDatePlanned());
@@ -175,12 +172,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                         }
                     }
 
-                    tbModel.addRow(new Object[]{id, name, description, startDatePlanned, endDatePlanned,
+                    tbModel.addRow(new Object[]{item, name, description, startDatePlanned, endDatePlanned,
                         startDateActual, endDateActual, inCharegePerson, isCompleted});
                 }
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching data: " + ex.getMessage(),
@@ -207,8 +203,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     modelMemberList.addElement(member);
                 }
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -234,8 +229,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 modelPM.addElement(rsc.getIdName());
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -263,8 +257,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -303,9 +296,9 @@ public class ProjectDetails extends javax.swing.JFrame {
         tsk_tfEndDateActual = new javax.swing.JTextField();
         tsk_btCancel = new javax.swing.JButton();
         jLabel32 = new javax.swing.JLabel();
-        tsk_lblTaskId = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
         tsk_taTaskDescription = new javax.swing.JTextArea();
+        tsk_tfTaskItemNo = new javax.swing.JTextField();
         jLabel33 = new javax.swing.JLabel();
         tsk_lblProjectId = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
@@ -399,7 +392,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             }
         });
 
-        jLabel26.setText("Task ID:");
+        jLabel26.setText("Item:");
 
         jLabel27.setText("Is Completed:");
 
@@ -461,13 +454,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         jLabel32.setText("Actual End Date:");
 
-        tsk_lblTaskId.setText(":::");
-
         tsk_taTaskDescription.setColumns(20);
         tsk_taTaskDescription.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
         tsk_taTaskDescription.setRows(5);
         tsk_taTaskDescription.setText("task description");
         jScrollPane5.setViewportView(tsk_taTaskDescription);
+
+        tsk_tfTaskItemNo.setText("0010");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -489,7 +482,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(tsk_tfStartDatePlanned)
                             .addComponent(tsk_tfStartDateActual)
-                            .addComponent(tsk_lblTaskId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(tsk_tfTaskItemNo))
                         .addGap(72, 72, 72)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel32)
@@ -508,7 +501,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                                 .addComponent(tsk_tfEndDatePlanned, javax.swing.GroupLayout.Alignment.LEADING)))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 189, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(tsk_btCancel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(tsk_btSave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -528,7 +521,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addComponent(jLabel29)
                                     .addComponent(tsk_tfTaskName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel30)
-                                    .addComponent(tsk_lblTaskId))
+                                    .addComponent(tsk_tfTaskItemNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel28)
@@ -869,7 +862,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Task ID", "Task Name", "Description", "Planned Start Date", "Planned End Date", "Actual Start Date", "Actual End Date", "Person in Charge", "Is Completed"
+                "Item", "Task Name", "Description", "Planned Start Date", "Planned End Date", "Actual Start Date", "Actual End Date", "Person in Charge", "Is Completed"
             }
         ));
         pjd_tbTaskList.setAutoscrolls(false);
@@ -926,7 +919,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pjd_btDeleteTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 112, Short.MAX_VALUE)
+                            .addComponent(pjd_btUpdateTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pjd_btAddTask, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
@@ -1245,8 +1238,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (projectManagerStr.compareTo(PLEASE_CHOOSE) != 0) {
             projectManager = Long.parseLong(projectManagerStr.substring(0, projectManagerStr.indexOf(" ")));
-        }
-        else {
+        } else {
             projectManager = 0;
         }
 
@@ -1282,23 +1274,19 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload parent frame
                 parentJFrame.loadAllProjects();
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException exrb) {
+                } catch (SQLException exrb) {
                     exrb.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1346,23 +1334,19 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload parent frame
                 parentJFrame.loadAllProjects();
 
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException ex1) {
+                } catch (SQLException ex1) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1380,18 +1364,15 @@ public class ProjectDetails extends javax.swing.JFrame {
                 isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                 if (isProjectCompleted) {
                     JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
-                }
-                else {
+                } else {
                     moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
                 }
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
             }
-        }
-        else {
+        } else {
             JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
         }
 
@@ -1408,8 +1389,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
 
                 moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -1487,23 +1467,19 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 // reload team member for pm or in-charge-person in project summary 
                 loadAllTeamMemberForComboBox();
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: team update error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 try {
                     db.rollbackUpdate();
-                }
-                catch (SQLException ex1) {
+                } catch (SQLException ex1) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database rollback error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
-            finally {
+            } finally {
                 try {
                     db.setAutoCommit(true);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error: database setting error !", "Database error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1524,6 +1500,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_tsk_btCancelActionPerformed
 
     private void tsk_btSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btSaveActionPerformed
+        currentTaskItem = Integer.parseInt(tsk_tfTaskItemNo.getText()); // all of checks will be done in the lost focus event
         String taskName = tsk_tfTaskName.getText();
         String description = tsk_taTaskDescription.getText();
         Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
@@ -1537,7 +1514,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error: Please enter the task name.", "Input error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        
         tempDate = tsk_tfStartDatePlanned.getText();
         if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
             startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
@@ -1580,38 +1557,36 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (inChargePersonStr.compareTo(PLEASE_CHOOSE) != 0) {
             inChargePerson = Long.parseLong(inChargePersonStr.substring(0, inChargePersonStr.indexOf(" ")));
-        }
-        else {
+        } else {
             inChargePerson = 0;
         }
 
         // create a new task
-        if (currentTaskId == 0) {
+        if (tsk_tfTaskItemNo.isEnabled()) {
             try {
-                Task task = new Task(0, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                System.out.println(currentTaskItem);
+                Task task = new Task(currentProjectId, currentTaskItem, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.addTask(task);
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
         } // update old task
         else {
             try {
-                Task task = new Task(currentTaskId, currentProjectId, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
+                Task task = new Task(currentProjectId, currentTaskItem, taskName, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted);
                 db.updateTask(task);
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1626,22 +1601,25 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void addTask() {
 
-        // initialize current task id
-        currentTaskId = 0;
-
-        tsk_lblTitle.setText(CREATE_NEW_TASK);
-        tsk_lblProjectId.setText(currentProjectId + "");
-        tsk_lblProjectName.setText(currentProject.getName());
-        tsk_lblTaskId.setText("");
-        tsk_tfTaskName.setText("");
-        tsk_taTaskDescription.setText("");
-        tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
-        tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
-        tsk_chkbIsCompleted.setSelected(false);
-
         try {
+
+            // initialize current task id
+            currentTaskItem = (int) (Math.floor((db.getMaxItem(currentProjectId) + 10) / 10)) * 10;
+
+            // initilize task edit dialog window
+            tsk_lblTitle.setText(CREATE_NEW_TASK);
+            tsk_lblProjectId.setText(currentProjectId + "");
+            tsk_lblProjectName.setText(currentProject.getName());
+            tsk_tfTaskItemNo.setText(String.format("%04d", currentTaskItem));
+            tsk_tfTaskItemNo.setEnabled(true);
+            tsk_tfTaskName.setText("");
+            tsk_taTaskDescription.setText("");
+            tsk_tfStartDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDatePlanned.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfStartDateActual.setText(GlobalProcess.DATE_PATTERN);
+            tsk_tfEndDateActual.setText(GlobalProcess.DATE_PATTERN);
+            tsk_chkbIsCompleted.setSelected(false);
+
             // initial value list for in-charege-person combo box
             // get all team members
             ArrayList<Team> team = db.getAllTeamMembers(currentProjectId);
@@ -1653,9 +1631,10 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (Team member : team) {
                 modelInCharePerson.addElement(member.getIdName());
             }
+            
+            tsk_tfTaskName.grabFocus();
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -1672,17 +1651,20 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void updateTask() {
 
-        tsk_lblProjectId.setText(currentProjectId + "");
-
-        tsk_lblProjectName.setText(currentProject.getName());
-
-        // initilize current task id
-        currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
-        tsk_lblTaskId.setText(currentTaskId + "");
-
         try {
+            
+            // initilize current task id
+            currentTaskItem = Integer.parseInt((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+            
             // get task details from Database
-            Task task = db.getTaskById(currentTaskId);
+            Task task = db.getTaskByProjectIdPlusItem(currentProjectId, currentTaskItem);
+            
+            // initilize task edit dialog window
+            tsk_lblProjectId.setText(currentProjectId + "");
+            tsk_lblProjectName.setText(currentProject.getName());
+
+            tsk_tfTaskItemNo.setText(String.format("%04d", currentTaskItem));
+            tsk_tfTaskItemNo.setEnabled(false);
 
             tsk_lblTitle.setText(TASK_EDITOR + task.getName());
             tsk_tfTaskName.setText(task.getName());
@@ -1710,8 +1692,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
             }
 
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Error fetching data: " + ex.getMessage(),
@@ -1728,11 +1709,11 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void deleteTask() {
 
-        currentTaskId = Long.parseLong((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
+        currentTaskItem = Integer.parseInt((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
 
         Object[] options = {"Cancel", "Delete"};
         int decision = JOptionPane.showOptionDialog(this,
-                "Are you sure you want to delete the task: ID# " + currentTaskId,
+                "Are you sure you want to delete the task: ID# " + currentTaskItem,
                 "Confirm delete",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE,
@@ -1743,12 +1724,11 @@ public class ProjectDetails extends javax.swing.JFrame {
         if (decision == 1) {
             // change delete flag status to true
             try {
-                db.changeDeleteFlagStatus(currentTaskId, true);
+                db.changeDeleteFlagStatus(currentProjectId, currentTaskItem, true);
                 loadTaskList();
                 parentJFrame.loadAllProjects();
                 parentJFrame.loadTasksById(currentProjectId);
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: task deletion error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1762,8 +1742,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     "Error: Please create a project before creating any task.",
                     "No Project",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        else {
+        } else {
             addTask();
         }
     }//GEN-LAST:event_pjd_btAddTaskActionPerformed
@@ -1775,15 +1754,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for editing.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             updateTask();
         }
     }//GEN-LAST:event_pjd_btUpdateTaskActionPerformed
@@ -1795,15 +1772,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for deleting.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             deleteTask();
         }
     }//GEN-LAST:event_pjd_btDeleteTaskActionPerformed
@@ -1943,18 +1918,15 @@ public class ProjectDetails extends javax.swing.JFrame {
                     isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                     if (isProjectCompleted) {
                         JOptionPane.showMessageDialog(this, "Project has been completed, you can not edit team any more !", "Project done", JOptionPane.ERROR_MESSAGE);
-                    }
-                    else {
+                    } else {
                         moveItemBetween2Lists(pjd_lstAllResourse, modelResourceList, pjd_lstCurTeamMember, modelMemberList);
                     }
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
                 }
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this, "Please create a project before creating team !", "Project does not exist", JOptionPane.WARNING_MESSAGE);
             }
         }
@@ -1972,8 +1944,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     }
 
                     moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
-                }
-                catch (SQLException ex) {
+                } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -1993,8 +1964,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                     "Error: Please create a project before creating any task.",
                     "No Project",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        else {
+        } else {
             addTask();
         }
     }//GEN-LAST:event_miNewTaskActionPerformed
@@ -2006,15 +1976,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for editing.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             updateTask();
         }
     }//GEN-LAST:event_miEditTaskActionPerformed
@@ -2026,15 +1994,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                         "Error: There is no task in the list.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this,
                         "Error: Please choose one task for deleting.",
                         "Task choose error",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             deleteTask();
         }
     }//GEN-LAST:event_miDeleteTaskActionPerformed
@@ -2049,7 +2015,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_miExitActionPerformed
 
     private void miEditProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditProjectActionPerformed
-        DefaultComboBoxModel<String> modelProjectList = (DefaultComboBoxModel)dlgProjectChooser_cbProject.getModel();
+        DefaultComboBoxModel<String> modelProjectList = (DefaultComboBoxModel) dlgProjectChooser_cbProject.getModel();
         modelProjectList.removeAllElements();
 
         modelProjectList.addElement(PLEASE_CHOOSE);
@@ -2059,8 +2025,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (Project p : projectList) {
                 modelProjectList.addElement(p.toString());
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
@@ -2081,8 +2046,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 currentProject = db.getProjectById(this.currentProjectId);
                 loadProjectInfo();
                 dlgProjectChooser.setVisible(false);
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                         "Error fetching project information from database: " + e.getMessage(),
@@ -2201,13 +2165,13 @@ public class ProjectDetails extends javax.swing.JFrame {
     private javax.swing.JCheckBox tsk_chkbIsCompleted;
     private javax.swing.JLabel tsk_lblProjectId;
     private javax.swing.JLabel tsk_lblProjectName;
-    private javax.swing.JLabel tsk_lblTaskId;
     private javax.swing.JLabel tsk_lblTitle;
     private javax.swing.JTextArea tsk_taTaskDescription;
     private javax.swing.JTextField tsk_tfEndDateActual;
     private javax.swing.JTextField tsk_tfEndDatePlanned;
     private javax.swing.JTextField tsk_tfStartDateActual;
     private javax.swing.JTextField tsk_tfStartDatePlanned;
+    private javax.swing.JTextField tsk_tfTaskItemNo;
     private javax.swing.JTextField tsk_tfTaskName;
     // End of variables declaration//GEN-END:variables
 
