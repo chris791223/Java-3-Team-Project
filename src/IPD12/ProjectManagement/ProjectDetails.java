@@ -5,22 +5,15 @@
  */
 package IPD12.ProjectManagement;
 
-import java.awt.GraphicsConfiguration;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import jdk.nashorn.internal.objects.Global;
-
 /**
  *
  * @author 1796111
@@ -42,6 +35,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     /**
      * Creates new form ProjectList
+     * @param projectId
      */
     public ProjectDetails(long projectId) {
 
@@ -2052,6 +2046,7 @@ public class ProjectDetails extends javax.swing.JFrame {
         // when use choose 1 or more rows
         if (!listFrom.isSelectionEmpty()) {
             ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
+            
             int[] rscIdxList = listFrom.getSelectedIndices();
 
             int rowsForMoving = rscIdxList.length;
