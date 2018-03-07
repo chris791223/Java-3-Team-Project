@@ -59,11 +59,11 @@ public class ProjectTasksTimeSeriesReport {
 		DRDataSource dataSource = new DRDataSource("Date", "AllTasks", "LeftTasks");
                 
                 Calendar c = Calendar.getInstance();
-		c.add(Calendar.DAY_OF_MONTH, -15);
+		c.add(Calendar.DAY_OF_MONTH, -14);
 		for (int i = 0; i < 15; i++) {
-			dataSource.add(c.getTime(),(int)(Math.random()*50)+50,(int)(Math.random()*50));
+			dataSource.add(c.getTime(),(int)(Math.random()*3)+7,(int)(Math.random()*5)+2);
 			c.add(Calendar.DAY_OF_MONTH, 1);
-		}		
+		}	
 		return dataSource;
 	} 
 }
