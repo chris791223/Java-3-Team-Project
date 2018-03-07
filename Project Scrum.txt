@@ -137,3 +137,12 @@ Each member writes down answers to 3 questions:
 - Prepare presentation
 3. Need assistance / figure things out
 - Nothing special
+
+
+ 2018/03/06 Jing Wang
+1. Done since last scrum:
+- Last improvement, and finalize the project
+2. Plan until next Scrum
+- Prepare presentation
+3. Need assistance / figure things out
+- Nothing special
