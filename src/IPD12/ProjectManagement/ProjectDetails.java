@@ -1373,9 +1373,12 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btMoveToTeamActionPerformed
 
     private void pjd_btMoveBackFromTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveBackFromTeamActionPerformed
-        boolean isProjectCompleted;
+        // MOVE AWAY THE WARNING MESSAGE
+        //boolean isProjectCompleted;
 
         if (currentProjectId != 0) {
+            moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+            /*  MOVE AWAY THE WARNING MESSAGE
             try {
                 isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                 if (!isProjectCompleted) {
@@ -1388,6 +1391,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
             }
+            */
         }
 
     }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
@@ -1942,6 +1946,10 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_lstCurTeamMemberMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_lstCurTeamMemberMousePressed
         if (evt.getClickCount() == 2) {
+            
+            moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+            
+            /*  MOVE AWAY THE WARNING MESSAGE
             boolean isProjectCompleted;
 
             if (currentProjectId != 0) {
@@ -1958,6 +1966,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 }
             }
+            */
         }
     }//GEN-LAST:event_pjd_lstCurTeamMemberMousePressed
 
@@ -2014,7 +2023,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_miDeleteTaskActionPerformed
 
     private void miBackToPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miBackToPreviousActionPerformed
-        parentDlg.setVisible(true);
+        parentJFrame.showMainDlg();
         this.dispose();
     }//GEN-LAST:event_miBackToPreviousActionPerformed
 
