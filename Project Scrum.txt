@@ -111,7 +111,7 @@ Each member writes down answers to 3 questions:
  - Got knowledge of making our project into an .exe file.
 2. Plan until next Scrum
  - Improve load projects list.
- - Word on Report
+ - Work on Report
 3. Need assistance / figure things out
  - Nothing special.
 
@@ -139,10 +139,19 @@ Each member writes down answers to 3 questions:
 - Nothing special
 
 
- 2018/03/06 Jing Wang
+ 2018/03/07 Jing Wang
 1. Done since last scrum:
 - Last improvement, and finalize the project
 2. Plan until next Scrum
 - Prepare presentation
 3. Need assistance / figure things out
 - Nothing special
+
+ 2018/03/06 Jie Zhu
+1. Done since last scrum:
+ - Develop a beautiful and dynamic report base on various projects.
+ - Pack our project into an installable package.
+2. Plan until next Scrum
+ - Test all functions and solve bugs.
+ - Prepare presentation.
+3. Need assistance / figure things out

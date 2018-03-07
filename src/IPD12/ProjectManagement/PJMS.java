@@ -87,52 +87,71 @@ public class PJMS extends javax.swing.JFrame {
         return new BigDecimal(Math.ceil((d1.getTime() - d2.getTime()) / (1000 * 3600 * 24.0)));
     }
 
-    private void showTasksList(ArrayList<Task> pList) {
+    private void showTasksList(ArrayList<Task> pList,String pCompleted) {
         colorFlag = new int[pList.size()];
         int rowIndex = 0;
         String alertString = "";
         BigDecimal diff = null;
-        for (Task l : pList) {
-            boolean isCompleted = l.getIsCompleted();
-            if (!isCompleted) {
-                Date now = new Date();
-                Date sdp = l.getStartDatePlanned();
-                Date sda = l.getStartDateActual();
-                Date edp = l.getEndDatePlanned();
-                Date eda = l.getEndDateActual();
-                if (sda == null && sdp != null) {
-                    diff = countTwoDate(sdp, now);
-                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) &&(diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1||diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
-                        alertString = diff.abs() + " Days due to start Date";
-                        colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
-                    } else if (diff.compareTo(BigDecimal.ZERO) == -1) {                      
-                        alertString = diff.abs() + " Days over start Date ";
-                        colorFlag[rowIndex] = REMINDER_COLOR_RED;
-                    }
-                } else if (eda == null && edp != null) {
-                    diff = countTwoDate(edp, now);
-                    if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && (diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1||diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
-                        alertString = diff.abs() + " Days due to end Date";
-                        colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
-                    } else if (diff.compareTo(BigDecimal.ZERO) == -1) {
-                        alertString = diff.abs() + " Days over end Date ";
-                        colorFlag[rowIndex] = REMINDER_COLOR_RED;
+        if (pCompleted.compareToIgnoreCase("no") == 0) {
+            for (Task l : pList) {
+                boolean isCompleted = l.getIsCompleted();
+                if (!isCompleted) {
+                    Date now = new Date();
+                    Date sdp = l.getStartDatePlanned();
+                    Date sda = l.getStartDateActual();
+                    Date edp = l.getEndDatePlanned();
+                    Date eda = l.getEndDateActual();
+                    if (sda == null && sdp != null) {
+                        diff = countTwoDate(sdp, now);
+                        if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && (diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1 || diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
+                            alertString = diff.abs() + " Days due to start Date";
+                            colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
+                        } else if (diff.compareTo(BigDecimal.ZERO) == -1) {
+                            alertString = diff.abs() + " Days over start Date ";
+                            colorFlag[rowIndex] = REMINDER_COLOR_RED;
+                        }
+                    } else if (eda == null && edp != null) {
+                        diff = countTwoDate(edp, now);
+                        if ((diff.compareTo(BigDecimal.ZERO) == 0 || diff.compareTo(BigDecimal.ZERO) == 1) && (diff.compareTo(new BigDecimal(REMINDER_DAY)) == -1 || diff.compareTo(new BigDecimal(REMINDER_DAY)) == 0)) {
+                            alertString = diff.abs() + " Days due to end Date";
+                            colorFlag[rowIndex] = REMINDER_COLOR_YELLOW;
+                        } else if (diff.compareTo(BigDecimal.ZERO) == -1) {
+                            alertString = diff.abs() + " Days over end Date ";
+                            colorFlag[rowIndex] = REMINDER_COLOR_RED;
+                        }
                     }
                 }
+                rowIndex++;
+                String completedStr = "";
+                if (isCompleted) {
+                    completedStr = "Yes";
+                } else {
+                    completedStr = "No";
+                }
+                taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), completedStr, alertString, String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+                alertString = "";
             }
-            rowIndex++;
-            taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), String.valueOf(l.getIsCompleted()), alertString, String.valueOf(l.getStartDatePlanned()),String.valueOf( l.getEndDatePlanned()),String.valueOf( l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
-            alertString = "";
+        } else {
+            for (Task l : pList) {
+                boolean isCompleted = l.getIsCompleted();
+                String completedStr = "";
+                if (isCompleted) {
+                    completedStr = "Yes";
+                } else {
+                    completedStr = "No";
+                }
+                taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), completedStr, alertString, String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});                
+            }
         }
     }
 
-    public void loadTasksById(long id) {
+    public void loadTasksById(long id,String isCompleted) {
         for (int i = taskTableModel.getRowCount() - 1; i >= 0; i--) {
             taskTableModel.removeRow(i);
         }
         try {
             ArrayList<Task> pList = db.getTasksById(id);
-            showTasksList(pList);
+            showTasksList(pList,isCompleted);
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null,
@@ -148,7 +167,7 @@ public class PJMS extends javax.swing.JFrame {
         }
         try {
             ArrayList<Task> pList = db.getAllTasks();
-            showTasksList(pList);
+            showTasksList(pList,"no");
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null,
@@ -177,7 +196,13 @@ public class PJMS extends javax.swing.JFrame {
         try {
             ArrayList<Project> pList = db.getAllProjects(controlCode);
             for (Project l : pList) {
-                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),String.valueOf(l.getIsCompleted()),String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+                String completedStr = "";
+                if (l.getIsCompleted()) {
+                    completedStr = "Yes";
+                } else {
+                    completedStr = "No";
+                }
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -214,7 +239,13 @@ public class PJMS extends javax.swing.JFrame {
         try {
             ArrayList<Project> pList = db.getAllProjects(Database.GETALLPROJECTS_ORDERBYID_ASC);
             for (Project l : pList) {
-                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),String.valueOf(l.getIsCompleted()),String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+                String completedStr = "";
+                if (l.getIsCompleted()) {
+                    completedStr = "Yes";
+                } else {
+                    completedStr = "No";
+                }
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -294,6 +325,7 @@ public class PJMS extends javax.swing.JFrame {
         jSeparator6 = new javax.swing.JSeparator();
         mainDlg_miAccount = new javax.swing.JMenuBar();
         jMenu7 = new javax.swing.JMenu();
+        jMenuItem3 = new javax.swing.JMenuItem();
         mainDlg_menuAccount = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -348,13 +380,6 @@ public class PJMS extends javax.swing.JFrame {
         mainDlg_pmProjects.add(mainDlg_pmShowDetail);
 
         mainDlg.setTitle("Main Dialog");
-        mainDlg.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
-            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
-                mainDlgWindowGainedFocus(evt);
-            }
-            public void windowLostFocus(java.awt.event.WindowEvent evt) {
-            }
-        });
 
         jLabel30.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel30.setText("Projects List:");
@@ -489,6 +514,15 @@ public class PJMS extends javax.swing.JFrame {
         jScrollPane1.setViewportView(mainDlg_tbProjects);
 
         jMenu7.setText("File");
+
+        jMenuItem3.setText("Export to Report");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu7.add(jMenuItem3);
+
         mainDlg_miAccount.add(jMenu7);
 
         mainDlg_menuAccount.setText("Hi,...");
@@ -1090,9 +1124,9 @@ public class PJMS extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_loginDlg_btnLoginKeyPressed
     private void showProjectEditDlg() {        
-        int rowindex = mainDlg_tbProjects.getSelectedRow();
+        int rowindex = mainDlg_tbProjects.getSelectedRow();        
         if (rowindex != -1) {
-            Object ido = projectTableModel.getValueAt(rowindex, 0);
+            Object ido = mainDlg_tbProjects.getValueAt(rowindex, 0);
             int id = 0;
             if (ido != null) {
                 id = Integer.parseInt(ido.toString());
@@ -1116,13 +1150,6 @@ public class PJMS extends javax.swing.JFrame {
         mainDlg.setVisible(false);
     }//GEN-LAST:event_mainDlg_btnAddProjectActionPerformed
 
-    private void mainDlgWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_mainDlgWindowGainedFocus
-        /*
-        loadAllProjects();
-        loadAllTasks();
-        */
-    }//GEN-LAST:event_mainDlgWindowGainedFocus
-
     private void mainDlg_tbProjectsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainDlg_tbProjectsMousePressed
         if (evt.getClickCount() == 2) {
             showProjectEditDlg();
@@ -1130,10 +1157,12 @@ public class PJMS extends javax.swing.JFrame {
             JTable table = (JTable) evt.getSource(); 
             Point point = evt.getPoint();
             int index = table.rowAtPoint(point);
-            String idString = projectTableModel.getValueAt(index, 0).toString();
+            String idString = mainDlg_tbProjects.getValueAt(index, 0).toString();
+            String isCompleted = mainDlg_tbProjects.getValueAt(index, 6).toString();
+            //String idString = projectTableModel.getValueAt(index, 0).toString();
             if (isInteger(idString)) {
                 int id = Integer.parseInt(idString);
-                loadTasksById(id);
+                loadTasksById(id,isCompleted);
             }
         }
     }//GEN-LAST:event_mainDlg_tbProjectsMousePressed
@@ -1141,7 +1170,7 @@ public class PJMS extends javax.swing.JFrame {
     private void mainDlg_pmShowDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mainDlg_pmShowDetailActionPerformed
         //showProjectEditDlg();
         int rowIndex = mainDlg_tbProjects.getSelectedRow();
-        String projectName = projectTableModel.getValueAt(rowIndex, 1).toString();
+        String projectName = mainDlg_tbProjects.getValueAt(rowIndex, 1).toString();
         String title = projectName + "'s Report";            
         ProjectTasksTimeSeriesReport report = new ProjectTasksTimeSeriesReport(title);
     }//GEN-LAST:event_mainDlg_pmShowDetailActionPerformed
@@ -1341,6 +1370,20 @@ public class PJMS extends javax.swing.JFrame {
     private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
         loginDlg_tfUserID.requestFocusInWindow();
     }//GEN-LAST:event_formFocusGained
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        int rowIndex = mainDlg_tbProjects.getSelectedRow();
+        if(rowIndex==-1){
+            JOptionPane.showMessageDialog(null,
+                    "Please select a project before export to report!\n",
+                    "User tutorial information",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String projectName = projectTableModel.getValueAt(rowIndex, 1).toString();
+            String title = projectName + "'s Report";
+            ProjectTasksTimeSeriesReport report = new ProjectTasksTimeSeriesReport(title);
+        }     
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
     private boolean validateRegisterInfo(){
         String name = registerDlg_tfName.getText();
         String email = registerDlg_tfEmail.getText();
@@ -1499,6 +1542,7 @@ public class PJMS extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu7;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane11;

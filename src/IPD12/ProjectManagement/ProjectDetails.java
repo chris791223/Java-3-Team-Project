@@ -14,6 +14,7 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author 1796111
@@ -1258,8 +1259,9 @@ public class ProjectDetails extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "New project " + currentProjectId + " has been created.", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                 // reload parent frame
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-
+                
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1318,7 +1320,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadTeamMember();
 
                 // reload parent frame
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
 
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1555,8 +1563,13 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
+                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1570,7 +1583,13 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadTaskList();
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                //currentProject = db.getProjectById(currentProjectId);                
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
+                
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1712,7 +1731,11 @@ public class ProjectDetails extends javax.swing.JFrame {
                 db.changeDeleteFlagStatus(currentProjectId, currentTaskItem, true);
                 loadTaskList();
                 parentJFrame.loadAllProjects();
-                parentJFrame.loadTasksById(currentProjectId);
+                if(currentProject.getIsCompleted()){
+                    parentJFrame.loadTasksById(currentProjectId,"yes");
+                }else{
+                    parentJFrame.loadTasksById(currentProjectId,"no");
+                }
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: task deletion error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -2044,17 +2067,16 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void moveItemBetween2Lists(JList listFrom, DefaultListModel modelFrom, JList listTo, DefaultListModel modelTo) {
         // when use choose 1 or more rows
+
         if (!listFrom.isSelectionEmpty()) {
             ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
             
             int[] rscIdxList = listFrom.getSelectedIndices();
-
             int rowsForMoving = rscIdxList.length;
             // move out from resource
             for (int i = rowsForMoving - 1; i >= 0; i--) {
                 modelFrom.removeElementAt(rscIdxList[i]);
             }
-
             // move into team
             int sizeBeforeMoving = modelTo.getSize();
             for (Team member : listSelected) {
