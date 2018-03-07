@@ -29,13 +29,17 @@ public class ProjectDetails extends javax.swing.JFrame {
     private final String CREATE_NEW_PROJECT = "Create New Project: ";
     private final String TASK_EDITOR = "Task Editor:　";
     private final String CREATE_NEW_TASK = "Create New Task: ";
+    private final String YES = "yes";
+    private final String NO = "no";
     JDialog parentDlg = null;
     long currentProjectId;
     Project currentProject = null;
     int currentTaskItem;
+    private PJMS parentJFrame;
 
     /**
      * Creates new form ProjectList
+     *
      * @param projectId
      */
     public ProjectDetails(long projectId) {
@@ -78,7 +82,6 @@ public class ProjectDetails extends javax.swing.JFrame {
         this(projectId);
         this.parentDlg = parentDlg;
     }
-    private PJMS parentJFrame;
 
     public ProjectDetails(PJMS parentFrame, long projectId) {
         this(projectId);
@@ -135,7 +138,6 @@ public class ProjectDetails extends javax.swing.JFrame {
     public void loadTaskList() {
 
         DefaultTableModel tbModel = (DefaultTableModel) pjd_tbTaskList.getModel();
-        // FIXED: initialization
         tbModel.getDataVector().removeAllElements();
         tbModel.fireTableDataChanged();
 
@@ -1261,7 +1263,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 // reload parent frame
                 //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-                
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: add project error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1320,12 +1322,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 loadTeamMember();
 
                 // reload parent frame
-                //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-                if(currentProject.getIsCompleted()){
-                    parentJFrame.loadTasksById(currentProjectId,"yes");
-                }else{
-                    parentJFrame.loadTasksById(currentProjectId,"no");
+
+                if (currentProject.getIsCompleted()) {
+                    parentJFrame.loadTasksById(currentProjectId, YES);
+                } else {
+                    parentJFrame.loadTasksById(currentProjectId, NO);
                 }
 
             } catch (SQLException ex) {
@@ -1373,9 +1375,12 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_pjd_btMoveToTeamActionPerformed
 
     private void pjd_btMoveBackFromTeamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pjd_btMoveBackFromTeamActionPerformed
-        boolean isProjectCompleted;
+        // MOVE AWAY THE WARNING MESSAGE
+        //boolean isProjectCompleted;
 
         if (currentProjectId != 0) {
+            moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+            /*  MOVE AWAY THE WARNING MESSAGE
             try {
                 isProjectCompleted = db.checkProjectIsCompleted(currentProjectId);
                 if (!isProjectCompleted) {
@@ -1388,6 +1393,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Error fetching data !", "Database error", JOptionPane.ERROR_MESSAGE);
 
             }
+             */
         }
 
     }//GEN-LAST:event_pjd_btMoveBackFromTeamActionPerformed
@@ -1508,7 +1514,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error: Please enter the task name.", "Input error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         tempDate = tsk_tfStartDatePlanned.getText();
         if (tempDate.trim().compareTo("") != 0 && tempDate.trim().compareToIgnoreCase(GlobalProcess.DATE_PATTERN) != 0) {
             startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
@@ -1565,10 +1571,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                 dlgTaskEditor.setVisible(false);
                 //currentProject = db.getProjectById(currentProjectId);
                 parentJFrame.loadAllProjects();
-                if(currentProject.getIsCompleted()){
-                    parentJFrame.loadTasksById(currentProjectId,"yes");
-                }else{
-                    parentJFrame.loadTasksById(currentProjectId,"no");
+                if (currentProject.getIsCompleted()) {
+                    parentJFrame.loadTasksById(currentProjectId, "yes");
+                } else {
+                    parentJFrame.loadTasksById(currentProjectId, "no");
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1584,12 +1590,12 @@ public class ProjectDetails extends javax.swing.JFrame {
                 dlgTaskEditor.setVisible(false);
                 //parentJFrame.loadAllProjects();
                 //currentProject = db.getProjectById(currentProjectId);                
-                if(currentProject.getIsCompleted()){
-                    parentJFrame.loadTasksById(currentProjectId,"yes");
-                }else{
-                    parentJFrame.loadTasksById(currentProjectId,"no");
+                if (currentProject.getIsCompleted()) {
+                    parentJFrame.loadTasksById(currentProjectId, "yes");
+                } else {
+                    parentJFrame.loadTasksById(currentProjectId, "no");
                 }
-                
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
@@ -1607,7 +1613,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         try {
 
-            // initialize current task id
+            // initialize next new task id
             currentTaskItem = (int) (Math.floor((db.getMaxItem(currentProjectId) + 10) / 10)) * 10;
 
             // initilize task edit dialog window
@@ -1635,7 +1641,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             for (Team member : team) {
                 modelInCharePerson.addElement(member.getIdName());
             }
-            
+
             tsk_tfTaskName.grabFocus();
 
         } catch (SQLException ex) {
@@ -1656,13 +1662,13 @@ public class ProjectDetails extends javax.swing.JFrame {
     private void updateTask() {
 
         try {
-            
+
             // initilize current task id
             currentTaskItem = Integer.parseInt((String) pjd_tbTaskList.getValueAt(pjd_tbTaskList.getSelectedRow(), 0));
-            
+
             // get task details from Database
             Task task = db.getTaskByProjectIdPlusItem(currentProjectId, currentTaskItem);
-            
+
             // initilize task edit dialog window
             tsk_lblProjectId.setText(currentProjectId + "");
             tsk_lblProjectName.setText(currentProject.getName());
@@ -1731,10 +1737,10 @@ public class ProjectDetails extends javax.swing.JFrame {
                 db.changeDeleteFlagStatus(currentProjectId, currentTaskItem, true);
                 loadTaskList();
                 parentJFrame.loadAllProjects();
-                if(currentProject.getIsCompleted()){
-                    parentJFrame.loadTasksById(currentProjectId,"yes");
-                }else{
-                    parentJFrame.loadTasksById(currentProjectId,"no");
+                if (currentProject.getIsCompleted()) {
+                    parentJFrame.loadTasksById(currentProjectId, "yes");
+                } else {
+                    parentJFrame.loadTasksById(currentProjectId, "no");
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -1942,6 +1948,10 @@ public class ProjectDetails extends javax.swing.JFrame {
 
     private void pjd_lstCurTeamMemberMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pjd_lstCurTeamMemberMousePressed
         if (evt.getClickCount() == 2) {
+
+            moveItemBetween2Lists(pjd_lstCurTeamMember, modelMemberList, pjd_lstAllResourse, modelResourceList);
+
+            /*  MOVE AWAY THE WARNING MESSAGE
             boolean isProjectCompleted;
 
             if (currentProjectId != 0) {
@@ -1958,6 +1968,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
                 }
             }
+             */
         }
     }//GEN-LAST:event_pjd_lstCurTeamMemberMousePressed
 
@@ -2014,7 +2025,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_miDeleteTaskActionPerformed
 
     private void miBackToPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miBackToPreviousActionPerformed
-        parentDlg.setVisible(true);
+        parentJFrame.showMainDlg();
         this.dispose();
     }//GEN-LAST:event_miBackToPreviousActionPerformed
 
@@ -2070,7 +2081,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
         if (!listFrom.isSelectionEmpty()) {
             ArrayList<Team> listSelected = (ArrayList<Team>) listFrom.getSelectedValuesList();
-            
+
             int[] rscIdxList = listFrom.getSelectedIndices();
             int rowsForMoving = rscIdxList.length;
             // move out from resource

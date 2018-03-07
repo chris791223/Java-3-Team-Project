@@ -71,7 +71,6 @@ public class PJMS extends javax.swing.JFrame {
             renderer.setForeground(foreground);
             return renderer;
         }
-
     }
 
     public static boolean isInteger(String str) {
@@ -1131,7 +1130,6 @@ public class PJMS extends javax.swing.JFrame {
             if (ido != null) {
                 id = Integer.parseInt(ido.toString());
             }
-            //new ProjectDetails(mainDlg, id).setVisible(true);
             new ProjectDetails(this, id).setVisible(true);
             mainDlg.setVisible(false);
         } else {
