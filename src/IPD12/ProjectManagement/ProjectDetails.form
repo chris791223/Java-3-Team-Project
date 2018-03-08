@@ -558,7 +558,7 @@
                   </Group>
                   <Component id="jPanel1" alignment="0" max="32767" attributes="0"/>
                   <Component id="jPanel2" alignment="0" max="32767" attributes="0"/>
-                  <Component id="jPanel3" pref="0" max="32767" attributes="0"/>
+                  <Component id="jPanel3" max="32767" attributes="0"/>
               </Group>
               <EmptySpace pref="41" max="32767" attributes="0"/>
           </Group>
@@ -626,7 +626,7 @@
                                   </Group>
                                   <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                      <Component id="pjd_tfStartDatePlanned" pref="90" max="32767" attributes="0"/>
+                                      <Component id="pjd_tfStartDatePlanned" max="32767" attributes="0"/>
                                       <Component id="pjd_tfStartDateActual" alignment="0" max="32767" attributes="0"/>
                                       <Component id="pjd_lblProjectId" alignment="0" max="32767" attributes="0"/>
                                   </Group>
@@ -647,7 +647,7 @@
                                       <Group type="102" attributes="0">
                                           <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                               <Component id="pjd_chkbIsCompleted" min="-2" max="-2" attributes="0"/>
-                                              <Component id="pjd_tfEndDatePlanned" alignment="0" pref="88" max="32767" attributes="0"/>
+                                              <Component id="pjd_tfEndDatePlanned" alignment="0" max="32767" attributes="0"/>
                                               <Component id="pjd_tfEndDateActual" alignment="0" max="32767" attributes="0"/>
                                           </Group>
                                           <EmptySpace min="0" pref="0" max="32767" attributes="0"/>

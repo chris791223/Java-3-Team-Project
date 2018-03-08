@@ -121,7 +121,7 @@ public class Database {
         return list;
     }
     
-    public ArrayList<Task> getAllTasksByProjectIdPlusItem(long projectId) throws SQLException {
+    public ArrayList<Task> getAllTasksByProjectIdOrderByItem(long projectId) throws SQLException {
 
         String sql = "SELECT item, name, description, startDatePlanned, endDatePlanned, startDateActual, endDateActual, inChargePerson, isCompleted "
                 + "FROM tasks WHERE projectId = ? AND isDeleted = false ORDER BY item";
@@ -167,6 +167,22 @@ public class Database {
         }
 
         return maxItem;
+    }
+    
+    public boolean checkItemIsExisting(long projectId, int itemNo) throws SQLException {
+        String sql = "SELECT * FROM tasks WHERE projectId = ? AND item = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, projectId);
+            stmt.setInt(2, itemNo);
+            
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public boolean checkIfHasUncompletedTaskByProjectId(long projectId) throws SQLException {
