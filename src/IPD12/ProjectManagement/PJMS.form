@@ -229,10 +229,10 @@
                     <Column editable="true" title="ManagerName" type="java.lang.String"/>
                     <Column editable="true" title="TaskNumbers" type="java.lang.Integer"/>
                     <Column editable="true" title="IsCompleted" type="java.lang.String"/>
-                    <Column editable="true" title="PlanStartDate" type="java.lang.String"/>
-                    <Column editable="true" title="PlanEndDate" type="java.lang.String"/>
-                    <Column editable="true" title="ActualStartDate" type="java.lang.String"/>
-                    <Column editable="true" title="ActualEndDate" type="java.lang.String"/>
+                    <Column editable="true" title="PlanStartDate" type="java.lang.Object"/>
+                    <Column editable="true" title="PlanEndDate" type="java.lang.Object"/>
+                    <Column editable="true" title="ActualStartDate" type="java.lang.Object"/>
+                    <Column editable="true" title="ActualEndDate" type="java.lang.Object"/>
                   </Table>
                 </Property>
                 <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">

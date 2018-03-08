@@ -47,6 +47,7 @@ public class PJMS extends javax.swing.JFrame {
     public void showMainDlg(){
         mainDlg.setVisible(true);
     }
+    static int count = 0;
     class ReminderRenderer implements TableCellRenderer {
 
         public final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
@@ -69,9 +70,9 @@ public class PJMS extends javax.swing.JFrame {
             foreground = Color.BLUE;
             renderer.setBackground(background);
             renderer.setForeground(foreground);
+            //System.out.println(count++);
             return renderer;
         }
-
     }
 
     public static boolean isInteger(String str) {
@@ -127,7 +128,7 @@ public class PJMS extends javax.swing.JFrame {
                     completedStr = "Yes";
                 } else {
                     completedStr = "No";
-                }
+                }                
                 taskTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getPersonInChargeName(), completedStr, alertString, String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
                 alertString = "";
             }
@@ -186,8 +187,7 @@ public class PJMS extends javax.swing.JFrame {
         TCModel.getColumn(7).setPreferredWidth(107);
         TCModel.getColumn(8).setPreferredWidth(88);
         TCModel.getColumn(9).setPreferredWidth(88);
-
-        mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
+        //mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
     }
     public void loadAllProjects(int controlCode) {
         for (int i = projectTableModel.getRowCount() - 1; i >= 0; i--) {
@@ -202,7 +202,7 @@ public class PJMS extends javax.swing.JFrame {
                 } else {
                     completedStr = "No";
                 }
-                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+                 projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -245,7 +245,7 @@ public class PJMS extends javax.swing.JFrame {
                 } else {
                     completedStr = "No";
                 }
-                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,String.valueOf(l.getStartDatePlanned()), String.valueOf(l.getEndDatePlanned()), String.valueOf(l.getStartDateActual()), String.valueOf(l.getEndDateActual())});
+                projectTableModel.addRow(new Object[]{l.getId(), l.getName(), l.getDescription(), l.getProjectManager(), l.getPMName(), l.getTasknums(),completedStr,l.getStartDatePlanned(), l.getEndDatePlanned(), l.getStartDateActual(), l.getEndDateActual()});
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -295,6 +295,7 @@ public class PJMS extends javax.swing.JFrame {
         taskTableModel = (DefaultTableModel) mainDlg_tbRemenderTask.getModel();
         loadAllProjects();
         loadAllTasks();
+        mainDlg_tbRemenderTask.setDefaultRenderer(Object.class, new ReminderRenderer());
     }
 
     /**
@@ -495,7 +496,7 @@ public class PJMS extends javax.swing.JFrame {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Long.class, java.lang.String.class, java.lang.String.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.Long.class, java.lang.String.class, java.lang.String.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -1131,7 +1132,6 @@ public class PJMS extends javax.swing.JFrame {
             if (ido != null) {
                 id = Integer.parseInt(ido.toString());
             }
-            //new ProjectDetails(mainDlg, id).setVisible(true);
             new ProjectDetails(this, id).setVisible(true);
             mainDlg.setVisible(false);
         } else {
