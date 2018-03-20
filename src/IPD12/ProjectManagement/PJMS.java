@@ -1331,9 +1331,8 @@ public class PJMS extends javax.swing.JFrame {
             String ability = registerDlg_tfAbility.getText();
             char[] password = registerDlg_tfPass.getPassword();
             User user = new User(1, name, email, ability, String.valueOf(password));
-            try {
-                db.AddUser(user);
-                long id = db.getUserIdByEmail(email);
+            try {                
+                long id = db.AddUser(user);
                 registerDlg.dispose();
                 JOptionPane.showMessageDialog(null,
                         "Your new account has been saved successfully!\n"+"Please remember your EmployeeID is "+id

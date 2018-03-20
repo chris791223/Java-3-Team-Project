@@ -607,15 +607,22 @@ public class Database {
             stmt.executeUpdate();
         }
     }
-    public void AddUser(User user) throws SQLException {
+    public long AddUser(User user) throws SQLException {        
+        long id = 0;    
         String sql = "INSERT INTO users (name, email, ability, password) VALUES (?, ?, ?, ?)";       
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getAbility());
             stmt.setString(4, user.getPassword());            
             stmt.executeUpdate();
-        }
+            // get primary key
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                id = generatedKeys.getLong(1);
+            }
+        }  
+        return id;
     }
                 
 
