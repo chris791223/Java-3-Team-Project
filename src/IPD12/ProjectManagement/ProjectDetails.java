@@ -145,7 +145,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             try {
                 // get task list
-                ArrayList<Task> taskList = db.getAllTasksByProjectIdPlusItem(currentProjectId);
+                ArrayList<Task> taskList = db.getAllTasksByProjectIdOrderByItem(currentProjectId);
 
                 for (Task task : taskList) {
 
@@ -608,7 +608,6 @@ public class ProjectDetails extends javax.swing.JFrame {
         dlgProjectChooser.setTitle("Project Chooser");
         dlgProjectChooser.setModal(true);
 
-        dlgProjectChooser_lblChooseProject.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         dlgProjectChooser_lblChooseProject.setText("Choose a Project ...");
 
         dlgProjectChooser_cbProject.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
@@ -773,7 +772,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addComponent(jLabel7))
                                 .addGap(27, 27, 27)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(pjd_tfStartDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE)
+                                    .addComponent(pjd_tfStartDatePlanned)
                                     .addComponent(pjd_tfStartDateActual)
                                     .addComponent(pjd_lblProjectId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addGap(53, 53, 53)
@@ -791,7 +790,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                             .addComponent(pjd_chkbIsCompleted)
-                                            .addComponent(pjd_tfEndDatePlanned, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+                                            .addComponent(pjd_tfEndDatePlanned)
                                             .addComponent(pjd_tfEndDateActual))
                                         .addGap(0, 0, Short.MAX_VALUE)))))
                         .addGap(18, 18, 18)
@@ -1137,7 +1136,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                         .addComponent(pjd_btGoBackToPjList, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(41, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -1500,7 +1499,7 @@ public class ProjectDetails extends javax.swing.JFrame {
     }//GEN-LAST:event_tsk_btCancelActionPerformed
 
     private void tsk_btSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tsk_btSaveActionPerformed
-        currentTaskItem = Integer.parseInt(tsk_tfTaskItemNo.getText()); // all of checks will be done in the lost focus event
+        String currentTaskItemStr = tsk_tfTaskItemNo.getText(); 
         String taskName = tsk_tfTaskName.getText();
         String description = tsk_taTaskDescription.getText();
         Date startDatePlanned = null, endDatePlanned = null, startDateActual = null, endDateActual = null;
@@ -1508,10 +1507,36 @@ public class ProjectDetails extends javax.swing.JFrame {
         String inChargePersonStr = (String) tsk_cbInChargePerson.getSelectedItem();
         long inChargePerson;
         String tempDate;
+        
+        if (tsk_tfTaskItemNo.isEnabled()) {
+            // check if item no is valid
+            if (!tsk_tfTaskItemNo.getText().matches("^[0-9]+?")) {
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Item number only could be digital numbers!", "Input error", JOptionPane.ERROR_MESSAGE);
+                return;
+            } 
+            // check if item is existing in database already
+            else {
+                currentTaskItem = Integer.parseInt(currentTaskItemStr);
+                try {
+                    if (db.checkItemIsExisting(currentProjectId, currentTaskItem)) {
+                        JOptionPane.showMessageDialog(dlgTaskEditor, "Error: The item number has been used in the database, \nplease enter a new item number.", "Input error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(dlgTaskEditor, "Error: database fetching error!", "Database error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } 
+        } 
+        else {
+            currentTaskItem = Integer.parseInt(currentTaskItemStr);
+        }
 
         if (taskName.trim().compareTo("") == 0) {
             // Show message box to the user
-            JOptionPane.showMessageDialog(this, "Error: Please enter the task name.", "Input error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Please enter the task name.", "Input error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -1520,7 +1545,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             startDatePlanned = GlobalProcess.checkDateFormat(tempDate);
             if (startDatePlanned == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned Start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Planned Start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -1530,7 +1555,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             endDatePlanned = GlobalProcess.checkDateFormat(tempDate);
             if (endDatePlanned == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Planned end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Planned end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -1540,7 +1565,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             startDateActual = GlobalProcess.checkDateFormat(tempDate);
             if (startDateActual == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Actual start Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -1550,7 +1575,7 @@ public class ProjectDetails extends javax.swing.JFrame {
             endDateActual = GlobalProcess.checkDateFormat(tempDate);
             if (endDateActual == null) {
                 // Show message box to the user
-                JOptionPane.showMessageDialog(this, "Error: Actual end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: Actual end Date format error (Format \"YYYY-MM-DD\").", "Input error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -1578,7 +1603,7 @@ public class ProjectDetails extends javax.swing.JFrame {
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
         } // update old task
         else {
@@ -1598,7 +1623,7 @@ public class ProjectDetails extends javax.swing.JFrame {
 
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlgTaskEditor, "Error: project update error !", "Database error", JOptionPane.ERROR_MESSAGE);
             }
 
         }

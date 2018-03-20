@@ -155,3 +155,12 @@ Each member writes down answers to 3 questions:
  - Test all functions and solve bugs.
  - Prepare presentation.
 3. Need assistance / figure things out
+
+
+ 2018/03/07 Jie Zhu
+1. Done since last scrum:
+ - Almost figure out all bug. It is easy using application.
+ - Already prepare presentation.
+2. Plan until next Scrum
+ - present.
+3. Need assistance / figure things out
